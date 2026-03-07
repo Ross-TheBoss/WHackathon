@@ -19,6 +19,13 @@
 .events-shell { display: grid; grid-template-columns: 240px 1fr; gap: 18px; max-width: 1200px; margin: 0 auto; }
 .events-sidebar { }
 .filters-card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 6px 14px rgba(0,0,0,0.06); }
+
+/* Event page hero + header */
+.event-hero { height: 300px; overflow: hidden; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+.event-hero .hero-img { width: 100%; height: 100%; object-fit: cover; display:block; }
+.event-page header h1 { margin-bottom: 0.25rem; }
+.event-page header .text-muted small { display: inline-block; }
+.event-page .card .card-body p { margin-bottom: 0.5rem; }
 .filters-card h3 { margin: 0 0 8px 0; font-size: 16px; }
 
 .events-main { }
@@ -32,6 +39,15 @@
 /* Sidebar specific tweaks */
 .search-filter { display:flex; flex-direction:column; gap:10px; }
 .search-filter .select-input, .search-filter .search-input { width:100%; }
+
+/* dual range styling for overlapping inputs */
+.range-wrap { height: 40px; }
+.range-wrap .range-input { position: absolute; left: 0; top: 8px; width: 100%; pointer-events: auto; background: transparent; }
+.range-wrap .range-input::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #111827; cursor: pointer; }
+.range-wrap .range-input::-moz-range-thumb { height: 16px; width: 16px; border-radius: 50%; background: #111827; cursor: pointer; }
+.range-wrap .range-input::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; }
+.range-wrap .range-input::-moz-range-track { height: 6px; border-radius: 6px; }
+
 
 @media (max-width: 880px) {
   .events-shell { grid-template-columns: 1fr; }
@@ -54,5 +70,81 @@
 .rating i { color:#ffd54f; margin-right:2px; }
 .search-filter { display:flex; gap:8px; margin:12px 0 16px 0; }
 .search-input, .select-input { padding:8px; border:1px solid #ccc; border-radius:4px; }
-.event-page { max-width: 780px; }
+.event-page { max-width: 1200px; }
 .event-description { margin-top: 16px; }
+
+/* Heart overlay animation when favouriting */
+.heart-overlay {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%) scale(0.6);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  transition: opacity 220ms ease-out, transform 420ms cubic-bezier(.2, .8, .2, 1);
+  color: rgba(229,57,100,0.95);
+  font-size: 48px;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18));
+}
+.heart-overlay.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(2);
+}
+
+@keyframes heart-pop {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+  30% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  70% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(1.25); opacity: 0; }
+}
+
+/* Broken-heart overlay for unfavourite */
+.heart-break {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%) scale(0.6) rotate(0deg);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  color: #ff6b6b;
+  font-size: 48px;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18));
+}
+.heart-break.show {
+  opacity: 1;
+  animation: heart-break-pop 700ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+/* Portal variant: fixed positioning so animation is independent of card reordering */
+.heart-break-portal {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  color: #ff6b6b;
+  font-size: 48px;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18));
+}
+
+@keyframes heart-break-pop {
+  0% { transform: translate(-50%, -50%) scale(0.6) rotate(0deg); opacity: 0; }
+  25% { transform: translate(-50%, -50%) scale(1.12) rotate(-8deg); opacity: 1; }
+  55% { transform: translate(-50%, -50%) scale(0.95) rotate(8deg); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(1.05) rotate(12deg); opacity: 0; }
+}
+
+/* Hover / focus effect: subtle lift and stronger shadow while preserving layout */
+.event-card {
+  transition: transform 180ms cubic-bezier(.2,.8,.2,1), box-shadow 180ms cubic-bezier(.2,.8,.2,1);
+  will-change: transform;
+  position: relative;
+}
+.event-card:hover, .event-card:focus-visible {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 18px 36px rgba(0,0,0,0.12);
+  z-index: 6;
+}
+
+/* Keep hover effects keyboard accessible */
+/* Removed :active shrink to avoid card shrinking on click */

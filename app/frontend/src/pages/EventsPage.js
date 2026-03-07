@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { TextField, InputAdornment } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import eventsData from '../data/mockEvents';
 import EventCard from '../components/EventCard';
 import SearchFilter from '../components/SearchFilter';
@@ -6,14 +8,40 @@ import SearchFilter from '../components/SearchFilter';
 export default function EventsPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
-  const [sort, setSort] = useState('dateAsc');
-  const [participants, setParticipants] = useState(0);
+  const [sort, setSort] = useState('soonest');
+  const [participants, setParticipants] = useState([0, 100]);
+  const [userLocation, setUserLocation] = useState(null);
+
+  useEffect(() => {
+    if (!navigator || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+      },
+      () => {
+        // silently ignore if user denies or errors
+      },
+      { enableHighAccuracy: false, maximumAge: 1000 * 60 * 5 }
+    );
+  }, []);
+
+  const distanceKm = (lat1, lon1, lat2, lon2) => {
+    const toRad = (v) => (v * Math.PI) / 180;
+    const R = 6371; // km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     let list = eventsData.filter(ev => {
       if (category && ev.category !== category) return false;
-      if (participants > 0 && ev.maxCapacity < participants) return false;
+      const [minP, maxP] = participants;
+      if (minP > 0 && (ev.participants ?? 0) < minP) return false;
+      if (maxP < 100 && (ev.participants ?? 0) > maxP) return false;
       if (!q) return true;
       return (
         ev.name.toLowerCase().includes(q) ||
@@ -25,18 +53,24 @@ export default function EventsPage() {
 
     // sorting
     list = list.slice();
-    if (sort === 'dateAsc') {
-      list.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-    } else if (sort === 'dateDesc') {
+    if (sort === 'newest') {
       list.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+    } else if (sort === 'soonest') {
+      list.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+    } else if (sort === 'closest') {
+      if (userLocation) {
+        list.sort((a, b) => {
+          const da = distanceKm(userLocation.latitude, userLocation.longitude, a.latitude ?? 0, a.longitude ?? 0);
+          const db = distanceKm(userLocation.latitude, userLocation.longitude, b.latitude ?? 0, b.longitude ?? 0);
+          return da - db;
+        });
+      }
     } else if (sort === 'nameAsc') {
       list.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sort === 'capacityDesc') {
-      list.sort((a, b) => b.maxCapacity - a.maxCapacity);
     }
 
     return list;
-  }, [search, category, sort]);
+  }, [search, category, sort, participants, userLocation]);
 
   return (
     <section className="events-page py-6">
@@ -62,21 +96,30 @@ export default function EventsPage() {
           <main className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="w-75 mx-auto">
-                <input
+                <TextField
                   aria-label="Search events"
                   placeholder="Search"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="form-control"
+                  size="small"
+                  fullWidth
+                  variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </div>
 
               <div className="ms-3">
                 <div className="btn-group" role="group" aria-label="Sort options">
-                  <button className={`btn btn-sm ${sort === 'dateAsc' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('dateAsc')}>Newest</button>
-                  <button className={`btn btn-sm ${sort === 'dateDesc' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('dateDesc')}>Soonest</button>
-                  <button className={`btn btn-sm ${sort === 'nameAsc' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('nameAsc')}>A–Z</button>
-                  <button className={`btn btn-sm ${sort === 'capacityDesc' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('capacityDesc')}>Capacity</button>
+                  <button className={`btn btn-sm text-nowrap ${sort === 'newest' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('newest')}>Newest</button>
+                  <button className={`btn btn-sm text-nowrap ${sort === 'soonest' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('soonest')}>Soonest</button>
+                  <button className={`btn btn-sm text-nowrap ${sort === 'closest' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('closest')}>Closest</button>
+                  <button className={`btn btn-sm text-nowrap ${sort === 'nameAsc' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('nameAsc')}>A–Z</button>
                 </div>
               </div>
             </div>

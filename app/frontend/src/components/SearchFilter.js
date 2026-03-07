@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Range } from 'react-range';
 
 export default function SearchFilter({
   search,
@@ -11,6 +12,15 @@ export default function SearchFilter({
   setParticipants,
   showSearch = true
 }) {
+  const minLimit = 0;
+  const maxLimit = 100;
+  const [minP, maxP] = participants;
+
+  const getBg = (minV, maxV) => {
+    const left = ((minV - minLimit) / (maxLimit - minLimit)) * 100;
+    const right = ((maxV - minLimit) / (maxLimit - minLimit)) * 100;
+    return `linear-gradient(to right, #d1d5db ${left}%, #0d6efd ${left}%, #0d6efd ${right}%, #d1d5db ${right}%)`;
+  };
 
   return (
     <div className="search-filter">
@@ -41,16 +51,58 @@ export default function SearchFilter({
       <div className="mb-3">
         <label className="form-label">Sort</label>
         <select value={sort} onChange={e => setSort(e.target.value)} className="form-select">
-          <option value="dateAsc">Date ↑</option>
-          <option value="dateDesc">Date ↓</option>
-          <option value="nameAsc">Name A–Z</option>
-          <option value="capacityDesc">Capacity ↓</option>
+          <option value="newest">Newest</option>
+          <option value="soonest">Soonest</option>
+          <option value="closest">Closest</option>
+          <option value="nameAsc">A–Z</option>
         </select>
       </div>
 
       <div className="mb-3">
-        <label className="form-label">Participants (min): {participants}</label>
-        <input type="range" className="form-range" min="0" max="100" value={participants} onChange={e => setParticipants(Number(e.target.value))} />
+        <label className="form-label">Participants: {minP} — {maxP}</label>
+        <div style={{ padding: '12px 0' }}>
+          <Range
+            values={[minP, maxP]}
+            step={1}
+            min={minLimit}
+            max={maxLimit}
+            onChange={(vals) => {
+              // ensure min < max
+              const [a, b] = vals;
+              if (a >= b) return;
+              setParticipants(vals);
+            }}
+            renderTrack={({ props, children }) => (
+              <div
+                {...props}
+                style={{
+                  ...props.style,
+                  height: '6px',
+                  width: '100%',
+                  borderRadius: '6px',
+                  background: getBg(minP, maxP)
+                }}
+              >
+                {children}
+              </div>
+            )}
+            renderThumb={({ props, index }) => (
+              <div
+                {...props}
+                style={{
+                  ...props.style,
+                  height: '16px',
+                  width: '16px',
+                  borderRadius: '50%',
+                  background: '#083c8a',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+              />
+            )}
+          />
+        </div>
       </div>
     </div>
   );
