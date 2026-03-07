@@ -2,6 +2,18 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Pages
+
+- Home
+- Events
+- Event
+  - Create Review
+- Create Event
+- Book Event
+- Login
+- Register
+- Profile
+
 ## Available Scripts
 
 In the project directory, you can run:
