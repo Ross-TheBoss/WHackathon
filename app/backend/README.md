@@ -20,6 +20,11 @@ Event:
 - payment?
 - description (markdown)
 
+Reviews:
+- event
+- author
+- text
+
 Booking:
 - name
 - mobile number
