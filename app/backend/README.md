@@ -19,6 +19,8 @@ Event:
 - maximum capacity
 - payment?
 - description (markdown)
+- like feature
+- 
 
 Reviews:
 - event
@@ -33,3 +35,4 @@ Booking:
 
 Ideas:
 - AI advice/conselling
+- 
