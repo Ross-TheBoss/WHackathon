@@ -104,22 +104,24 @@ export default function EventsPage() {
                   size="small"
                   fullWidth
                   variant="outlined"
+                  sx={{ backgroundColor: 'white' }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
                         <SearchIcon />
                       </InputAdornment>
                     ),
+                    sx: { backgroundColor: 'white' }
                   }}
                 />
               </div>
 
               <div className="ms-3">
                 <div className="btn-group" role="group" aria-label="Sort options">
-                  <button className={`btn btn-sm text-nowrap ${sort === 'newest' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('newest')}>Newest</button>
-                  <button className={`btn btn-sm text-nowrap ${sort === 'soonest' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('soonest')}>Soonest</button>
-                  <button className={`btn btn-sm text-nowrap ${sort === 'closest' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('closest')}>Closest</button>
-                  <button className={`btn btn-sm text-nowrap ${sort === 'nameAsc' ? 'btn-dark' : 'btn-outline-secondary'}`} onClick={() => setSort('nameAsc')}>A–Z</button>
+                  <button className={`btn btn-sm text-nowrap ${sort === 'newest' ? 'btn-dark' : 'btn-light border-secondary'}`} onClick={() => setSort('newest')}>Newest</button>
+                  <button className={`btn btn-sm text-nowrap ${sort === 'soonest' ? 'btn-dark' : 'btn-light border-secondary'}`} onClick={() => setSort('soonest')}>Soonest</button>
+                  <button className={`btn btn-sm text-nowrap ${sort === 'closest' ? 'btn-dark' : 'btn-light border-secondary'}`} onClick={() => setSort('closest')}>Closest</button>
+                  <button className={`btn btn-sm text-nowrap ${sort === 'nameAsc' ? 'btn-dark' : 'btn-light border-secondary'}`} onClick={() => setSort('nameAsc')}>A–Z</button>
                 </div>
               </div>
             </div>
