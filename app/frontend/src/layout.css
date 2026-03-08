@@ -110,7 +110,7 @@
   pointer-events: none;
   opacity: 0;
   z-index: 2;
-  color: #ff6b6b;
+  color: rgba(229,57,100,0.95);
   font-size: 48px;
   filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18));
 }
@@ -124,7 +124,7 @@
   position: fixed;
   pointer-events: none;
   z-index: 9999;
-  color: #ff6b6b;
+  color: rgba(229,57,100,0.95);
   font-size: 48px;
   filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18));
 }

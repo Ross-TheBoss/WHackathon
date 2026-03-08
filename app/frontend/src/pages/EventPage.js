@@ -20,6 +20,7 @@ export default function EventPage() {
   const [reviews, setReviews] = useState(event?.reviews || []);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [registeredUsername, setRegisteredUsername] = useState('');
 
   const handleConfirm = () => {
     if (!username || !acceptedTerms) {
@@ -28,6 +29,7 @@ export default function EventPage() {
     }
 
     alert(`Reservation confirmed for ${username}!`);
+    setRegisteredUsername(username);
     setIsRegistered(true);
     if (groupChat) {
       setIsChatOpen(true);
@@ -290,6 +292,7 @@ export default function EventPage() {
         eventId={event.id}
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
+        username={registeredUsername}
       />
     </article>
   );

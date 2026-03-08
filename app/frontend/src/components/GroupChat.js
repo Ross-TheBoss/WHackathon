@@ -3,16 +3,44 @@ import { Box, Paper, TextField, Button, Typography, Avatar, IconButton } from '@
 import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
 
-export default function GroupChat({ eventName, eventId, isOpen, onClose }) {
-  const [messages, setMessages] = useState([
-    // Mock initial messages
-    { id: 1, author: 'Sarah M.', content: 'Looking forward to this event!', timestamp: new Date(Date.now() - 3600000) },
-    { id: 2, author: 'Emma L.', content: 'Me too! Should we carpool?', timestamp: new Date(Date.now() - 1800000) },
-    { id: 3, author: 'Rachel G.', content: 'I can drive! I have space for 3 more.', timestamp: new Date(Date.now() - 900000) }
-  ]);
-  const [newMessage, setNewMessage] = useState('');
-  const [username, setUsername] = useState('Guest User');
+export default function GroupChat({ eventName, eventId, isOpen, onClose, username }) {
+  const storageKey = `groupchat_${eventId}`;
   const messagesEndRef = useRef(null);
+
+  // Load messages from localStorage or use default mock messages
+  const getInitialMessages = () => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Convert timestamp strings back to Date objects
+        return parsed.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+      }
+    } catch (e) {
+      console.error('Error loading messages from localStorage:', e);
+    }
+    // Default mock messages if nothing in localStorage
+    return [
+      { id: 1, author: 'Sarah M.', content: 'Looking forward to this event!', timestamp: new Date(Date.now() - 3600000) },
+      { id: 2, author: 'Emma L.', content: 'Me too! Should we carpool?', timestamp: new Date(Date.now() - 1800000) },
+      { id: 3, author: 'Rachel G.', content: 'I can drive! I have space for 3 more.', timestamp: new Date(Date.now() - 900000) }
+    ];
+  };
+
+  const [messages, setMessages] = useState(getInitialMessages());
+  const [newMessage, setNewMessage] = useState('');
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    } catch (e) {
+      console.error('Error saving messages to localStorage:', e);
+    }
+  }, [messages, storageKey]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -28,15 +56,13 @@ export default function GroupChat({ eventName, eventId, isOpen, onClose }) {
 
     const message = {
       id: Date.now(),
-      author: username,
+      author: username || 'Guest User',
       content: newMessage,
       timestamp: new Date()
     };
 
     setMessages([...messages, message]);
     setNewMessage('');
-
-    // TODO: Replace with actual API call to POST /chats/{eventId}/messages
   };
 
   const formatTime = (date) => {
