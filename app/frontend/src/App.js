@@ -4,7 +4,6 @@ import './App.css';
 import './layout.css';
 import EventsPage from './pages/EventsPage';
 import EventPage from './pages/EventPage';
-import HomePage from './pages/HomePage';
 
 function App() {
   return (
@@ -15,8 +14,7 @@ function App() {
         </nav>
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/events" element={<EventsPage />} />
+            <Route path="/" element={<EventsPage />} />
             <Route path="/events/:id" element={<EventPage />} />
           </Routes>
         </main>

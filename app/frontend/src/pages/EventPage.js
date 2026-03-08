@@ -12,7 +12,7 @@ export default function EventPage() {
   if (!event) return (
     <div className="event-page">
       <p>Event not found.</p>
-      <p><Link to="/events">Back to events</Link></p>
+      <p><Link to="/">Back to events</Link></p>
     </div>
   );
 
@@ -76,7 +76,7 @@ export default function EventPage() {
         </div>
       </section>
 
-      <p className="btn btn-primary"><Link to="/events">Back to events</Link></p>
+      <p class="btn btn-primary"><Link to="/">Back to events</Link></p>
     </article>
   );
 }
