@@ -11,7 +11,7 @@
   padding: 12px 16px;
 }
 .brand { color: white; text-decoration: none; font-weight: 600; }
-.app-main { flex: 1; padding: 20px; }
+.app-main { flex: 1; padding: 20px; background-color: #f4c1c1; }
 .events-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 
 /* Events page two-column layout */
@@ -31,9 +31,9 @@
 .events-main { }
 .top-controls { display:flex; align-items:center; gap:12px; margin-bottom:12px; justify-content:space-between; }
 .search-top { flex: 1; display:flex; justify-content:center; }
-.search-input-top { max-width: 520px; width:100%; }
+.search-input-top { max-width: 520px; width:100%; background-color: white; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
 .sort-chips { display:flex; gap:8px; }
-.chip { background: transparent; border:1px solid rgba(0,0,0,0.12); padding:6px 10px; border-radius:16px; cursor:pointer; font-size:13px; }
+.chip { background: white; border:1px solid rgba(0,0,0,0.12); padding:6px 10px; border-radius:16px; cursor:pointer; font-size:13px; }
 .chip.active { background:#111827; color:white; border-color:transparent; }
 
 /* Sidebar specific tweaks */
@@ -69,7 +69,7 @@
 .event-footer i { color:#ffb74d; margin-right:6px; }
 .rating i { color:#ffd54f; margin-right:2px; }
 .search-filter { display:flex; gap:8px; margin:12px 0 16px 0; }
-.search-input, .select-input { padding:8px; border:1px solid #ccc; border-radius:4px; }
+.search-input, .select-input { padding:8px; border:1px solid #ccc; border-radius:4px; background-color: white; }
 .event-page { max-width: 1200px; }
 .event-description { margin-top: 16px; }
 
