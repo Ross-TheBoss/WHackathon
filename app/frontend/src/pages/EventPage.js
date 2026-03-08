@@ -35,13 +35,18 @@ export default function EventPage() {
       </div>
 
       <header className="mb-3">
-        <h1 className="display-5 fw-bold">{event.name}</h1>
-        <div className="text-muted">
-          <small>By {event.author}</small>
+        <div className="d-flex flex-wrap align-items-center justify-content-between">
+          <div>
+            <h1 className="display-5 fw-bold d-inline">{event.name}</h1>
+            <button className="btn btn-success ms-3">Reserve</button>
+          </div>
+          <div className="text-muted">
+            <small>By {event.author}</small>
             <div className="d-flex gap-3 align-items-center mt-2">
-            <span className="text-muted"><i className="fa-solid fa-calendar-days me-2"></i>{timeDisplay}</span>
-            <span className="text-muted"><i className="fa-solid fa-map-marker-alt me-2"></i>{event.location}</span>
-            <span className="badge bg-secondary">{event.category}</span>
+              <span className="text-muted"><i className="fa-solid fa-calendar-days me-2"></i>{timeDisplay}</span>
+              <span className="text-muted"><i className="fa-solid fa-map-marker-alt me-2"></i>{event.location}</span>
+              <span className="badge bg-secondary">{event.category}</span>
+            </div>
           </div>
         </div>
       </header>
