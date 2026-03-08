@@ -5,6 +5,7 @@ import eventsData from '../data/mockEvents';
 import ReactMarkdown from 'react-markdown';
 import { formatEventTime } from '../utils/dateUtils';
 import { Rating } from '@mui/material';
+import GroupChat from '../components/GroupChat';
 
 export default function EventPage() {
   const { id } = useParams();
@@ -17,6 +18,8 @@ export default function EventPage() {
 
   const [newReview, setNewReview] = useState({ rating: 5, comment: '', author: '' });
   const [reviews, setReviews] = useState(event?.reviews || []);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const handleConfirm = () => {
     if (!username || !acceptedTerms) {
@@ -25,6 +28,10 @@ export default function EventPage() {
     }
 
     alert(`Reservation confirmed for ${username}!`);
+    setIsRegistered(true);
+    if (groupChat) {
+      setIsChatOpen(true);
+    }
     setShowModal(false);
     setUsername('');
     setGroupChat(false);
@@ -81,9 +88,21 @@ export default function EventPage() {
           <header className="mb-3">
             <div className="d-flex justify-content-between align-items-start mb-3">
               <h1 className="display-5 fw-bold">{event.name}</h1>
-              <button className="btn btn-success" onClick={() => setShowModal(true)}>
-                Reserve
-              </button>
+              <div className="d-flex gap-2">
+                {isRegistered && (
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={() => setIsChatOpen(true)}
+                    style={{ backgroundColor: '#c5addc', borderColor: '#c5addc' }}
+                  >
+                    <i className="fa-solid fa-comments me-2"></i>
+                    Group Chat
+                  </button>
+                )}
+                <button className="btn btn-success" onClick={() => setShowModal(true)}>
+                  Reserve
+                </button>
+              </div>
             </div>
             <div className="text-muted">
               <small>By {event.author}</small>
@@ -264,6 +283,14 @@ export default function EventPage() {
           </div>
         </>
       )}
+      
+      {/* Group Chat Component */}
+      <GroupChat 
+        eventName={event.name}
+        eventId={event.id}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
     </article>
   );
 }

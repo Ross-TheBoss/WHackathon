@@ -32,8 +32,10 @@ export default function CreateEventPage() {
     capacity: '',
     startTime: '',
     endTime: '',
+    image: '',
     organiserId: '' // This would typically come from auth context
   });
+  const [imageName, setImageName] = useState('');
 
   const [errors, setErrors] = useState({});
 
@@ -70,6 +72,26 @@ export default function CreateEventPage() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please choose an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((prev) => ({
+        ...prev,
+        image: typeof reader.result === 'string' ? reader.result : ''
+      }));
+      setImageName(file.name);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -172,6 +194,27 @@ export default function CreateEventPage() {
             helperText={errors.location}
             sx={{ mb: 2 }}
           />
+
+          <Box sx={{ mb: 2 }}>
+            <Button variant="outlined" component="label">
+              Upload Event Picture
+              <input hidden accept="image/*" type="file" onChange={handleImageChange} />
+            </Button>
+            {imageName && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Selected: {imageName}
+              </Typography>
+            )}
+            {formData.image && (
+              <Box sx={{ mt: 2 }}>
+                <img
+                  src={formData.image}
+                  alt="Event preview"
+                  style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 8, objectFit: 'cover' }}
+                />
+              </Box>
+            )}
+          </Box>
 
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
             <TextField
