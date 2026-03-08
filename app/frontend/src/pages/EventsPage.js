@@ -104,7 +104,15 @@ export default function EventsPage() {
                   size="small"
                   fullWidth
                   variant="outlined"
-                  sx={{ backgroundColor: 'white' }}
+                  sx={{ 
+                    backgroundColor: 'white',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px'
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'white'
+                    }
+                  }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -118,10 +126,26 @@ export default function EventsPage() {
 
               <div className="ms-3">
                 <div className="btn-group" role="group" aria-label="Sort options">
-                  <button className={`btn btn-sm text-nowrap ${sort === 'newest' ? 'btn-dark' : 'btn-light border-secondary'}`} onClick={() => setSort('newest')}>Newest</button>
-                  <button className={`btn btn-sm text-nowrap ${sort === 'soonest' ? 'btn-dark' : 'btn-light border-secondary'}`} onClick={() => setSort('soonest')}>Soonest</button>
-                  <button className={`btn btn-sm text-nowrap ${sort === 'closest' ? 'btn-dark' : 'btn-light border-secondary'}`} onClick={() => setSort('closest')}>Closest</button>
-                  <button className={`btn btn-sm text-nowrap ${sort === 'nameAsc' ? 'btn-dark' : 'btn-light border-secondary'}`} onClick={() => setSort('nameAsc')}>A–Z</button>
+                  <button
+                    className="btn btn-sm text-nowrap btn-light border-0 shadow-none"
+                    style={sort === 'newest' ? { backgroundColor: '#c5addc', color: 'white' } : {}}
+                    onClick={() => setSort('newest')}
+                  >Newest</button>
+                  <button
+                    className="btn btn-sm text-nowrap btn-light border-0 shadow-none"
+                    style={sort === 'soonest' ? { backgroundColor: '#c5addc', color: 'white' } : {}}
+                    onClick={() => setSort('soonest')}
+                  >Soonest</button>
+                  <button
+                    className="btn btn-sm text-nowrap btn-light border-0 shadow-none"
+                    style={sort === 'closest' ? { backgroundColor: '#c5addc', color: 'white' } : {}}
+                    onClick={() => setSort('closest')}
+                  >Closest</button>
+                  <button
+                    className="btn btn-sm text-nowrap btn-light border-0 shadow-none"
+                    style={sort === 'nameAsc' ? { backgroundColor: '#c5addc', color: 'white' } : {}}
+                    onClick={() => setSort('nameAsc')}
+                  >A–Z</button>
                 </div>
               </div>
             </div>
