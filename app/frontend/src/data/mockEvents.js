@@ -15,8 +15,7 @@ const events = [
     groups: ['Adults', 'Beginners'],
     participants: 12,
     rating: 4.0,
-    description: `# Intro to Pottery
-
+    description: `
   Join us for a hands-on introduction to pottery where you'll learn both wheel-throwing and hand-building techniques.
 
   What to expect:
@@ -42,8 +41,7 @@ const events = [
     groups: ['Families', 'All Ages'],
     participants: 40,
     rating: 4.5,
-    description: `# Family Yoga
-
+    description: `
   A relaxed, family-friendly yoga session designed for parents and children to move, breathe and play together.
 
   Highlights:
@@ -68,7 +66,7 @@ const events = [
     groups: ['Adults', 'Advanced'],
     participants: 20,
     rating: 4.8,
-    description: `# Advanced Python Workshop
+    description: `
 
   This intensive workshop covers advanced Python topics aimed at professional developers looking to level up their skills.
 
@@ -95,8 +93,7 @@ const events = [
     groups: ['Adults', 'Couples'],
     participants: 30,
     rating: 4.2,
-    description: `# Beginner Salsa
-
+    description: `
   Get moving with introductory salsa basics — no partner required. This class focuses on rhythm, basic steps, and turning technique.
 
   What you'll learn:
@@ -121,7 +118,7 @@ const events = [
     groups: ['All Ages'],
     participants: 100,
     rating: 3.9,
-    description: `# Local History Talk
+    description: `
 
   Join the Historical Society for an illustrated talk exploring the town's origins, notable landmarks, and the people who shaped our community.
 
