@@ -4,6 +4,7 @@ import slugify from 'react-slugify';
 import eventsData from '../data/mockEvents';
 import ReactMarkdown from 'react-markdown';
 import { formatEventTime } from '../utils/dateUtils';
+import { Rating } from '@mui/material';
 
 export default function EventPage() {
   const { id } = useParams();
@@ -13,6 +14,9 @@ export default function EventPage() {
   const [username, setUsername] = useState('');
   const [groupChat, setGroupChat] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '', author: '' });
+  const [reviews, setReviews] = useState(event?.reviews || []);
 
   const handleConfirm = () => {
     if (!username || !acceptedTerms) {
@@ -25,6 +29,27 @@ export default function EventPage() {
     setUsername('');
     setGroupChat(false);
     setAcceptedTerms(false);
+  };
+
+  const handleReviewSubmit = (e) => {
+    e.preventDefault();
+    
+    if (!newReview.author.trim() || !newReview.comment.trim()) {
+      alert("Please provide your name and a comment.");
+      return;
+    }
+
+    const review = {
+      id: Date.now(),
+      author: newReview.author,
+      rating: newReview.rating,
+      comment: newReview.comment,
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    setReviews([...reviews, review]);
+    setNewReview({ rating: 5, comment: '', author: '' });
+    alert("Thank you for your review!");
   };
 
   if (!event) return (
@@ -104,6 +129,76 @@ export default function EventPage() {
               </section>
             </div>
           </section>
+
+          {/* Reviews Section */}
+          <section className="reviews-section mt-4 mb-4">
+            <h2 className="h4 mb-3">Reviews</h2>
+            
+            {/* Existing Reviews */}
+            {reviews && reviews.length > 0 ? (
+              <div className="reviews-list mb-4">
+                {reviews.map((review) => (
+                  <div key={review.id} className="card mb-3">
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                          <h5 className="card-title mb-1">{review.author}</h5>
+                          <small className="text-muted">{new Date(review.date).toLocaleDateString()}</small>
+                        </div>
+                        <Rating value={review.rating} readOnly size="small" />
+                      </div>
+                      <p className="card-text mb-0">{review.comment}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted mb-4">No reviews yet. Be the first to review this event!</p>
+            )}
+
+            {/* Add Review Form */}
+            <div className="card">
+              <div className="card-body">
+                <h3 className="h5 mb-3">Write a Review</h3>
+                <form onSubmit={handleReviewSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label">Your Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={newReview.author}
+                      onChange={(e) => setNewReview({...newReview, author: e.target.value})}
+                      placeholder="Enter your name"
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Rating</label>
+                    <div>
+                      <Rating
+                        value={newReview.rating}
+                        onChange={(e, newValue) => setNewReview({...newReview, rating: newValue})}
+                        size="large"
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Comment</label>
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      value={newReview.comment}
+                      onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
+                      placeholder="Share your experience..."
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary">Submit Review</button>
+                </form>
+              </div>
+            </div>
+          </section>
+
           <p className="btn btn-primary mt-3">
             <Link className="text-white text-decoration-none" to="/events">
               Back to events

@@ -3,6 +3,7 @@ import { TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import eventsData from '../data/mockEvents';
 import EventCard from '../components/EventCard';
+import AddEventCard from '../components/AddEventCard';
 import SearchFilter from '../components/SearchFilter';
 
 export default function EventsPage() {
@@ -156,6 +157,9 @@ export default function EventsPage() {
                   <EventCard event={ev} />
                 </div>
               ))}
+              <div className="col">
+                <AddEventCard />
+              </div>
               {filtered.length === 0 && <p>No events match your search.</p>}
             </div>
           </main>

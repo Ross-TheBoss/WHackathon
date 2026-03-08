@@ -26,7 +26,12 @@ const events = [
   - All tools and materials provided; just wear clothes you don't mind getting a little clay on
 
   Suitable for beginners and those who've never touched a wheel before. By the end of the session you'll have at least one small piece to take home and a clear path to continue learning.
-  `
+  `,
+    reviews: [
+      { id: 1, author: 'Sarah M.', rating: 5, comment: 'Amazing experience! Lena was very patient and helpful. I made my first bowl and I\'m so proud of it!', date: '2026-02-15' },
+      { id: 2, author: 'Mia T.', rating: 4, comment: 'Great intro class. Would recommend for complete beginners.', date: '2026-02-20' },
+      { id: 3, author: 'Emma L.', rating: 4, comment: 'Really enjoyed this! The studio is well-equipped and the atmosphere was relaxing.', date: '2026-02-28' }
+    ]
   },
   {
     id: '2',
@@ -51,7 +56,11 @@ const events = [
   - Simple sequences suitable for ages 4 and up
 
   Please bring a mat for each participant and a small towel. No prior experience required — the instructor will offer gentle progressions and options for all levels.
-  `
+  `,
+    reviews: [
+      { id: 4, author: 'Jennifer K.', rating: 5, comment: 'My kids loved it! Samir made it fun and engaging for all ages.', date: '2026-02-10' },
+      { id: 5, author: 'Diana R.', rating: 4, comment: 'Great family activity. We\'ll definitely be back!', date: '2026-02-18' }
+    ]
   },
   {
     id: '3',
@@ -78,7 +87,12 @@ const events = [
   - **Memory management** and common pitfalls
 
   Participants should be comfortable with Python fundamentals. Bring your laptop, a charged battery, and your favorite editor. We'll provide example code and profiling datasets.
-  `
+  `,
+    reviews: [
+      { id: 6, author: 'Alexa P.', rating: 5, comment: 'Excellent workshop! Dr. Chen explained complex concepts clearly. The hands-on exercises were very valuable.', date: '2026-01-25' },
+      { id: 7, author: 'Rachel G.', rating: 5, comment: 'Best Python workshop I\'ve attended. Great pace and depth.', date: '2026-01-28' },
+      { id: 8, author: 'Tessa H.', rating: 4, comment: 'Very informative. Could have used more time on asyncio but overall great content.', date: '2026-02-05' }
+    ]
   },
   {
     id: '4',
@@ -103,7 +117,11 @@ const events = [
   - Simple turns and balance drills
 
   Wear comfortable shoes with a little slide (no thick rubber soles). We'll end with a short social dance practice so you can try moves with others in a friendly environment.
-  `
+  `,
+    reviews: [
+      { id: 9, author: 'Lisa M.', rating: 4, comment: 'Fun class! Elena and Marco are great teachers. I felt comfortable as a complete beginner.', date: '2026-02-12' },
+      { id: 10, author: 'Carla D.', rating: 4, comment: 'Enjoyed learning the basics. Looking forward to the next level!', date: '2026-02-22' }
+    ]
   },
   {
     id: '5',
@@ -129,7 +147,11 @@ const events = [
   - Q&A and recommendations for self-guided walking routes
 
   This talk is suitable for history buffs and curious residents alike. Seating is limited; please arrive early to secure a spot.
-  `
+  `,
+    reviews: [
+      { id: 11, author: 'Margaret S.', rating: 4, comment: 'Very informative! Learned so much about our town\'s history.', date: '2026-02-08' },
+      { id: 12, author: 'Joanna W.', rating: 3, comment: 'Interesting but could have been more engaging. Still worth attending.', date: '2026-02-14' }
+    ]
   }
 ];
 
