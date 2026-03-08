@@ -12,6 +12,19 @@ export default function EventsPage() {
   const [sort, setSort] = useState('soonest');
   const [participants, setParticipants] = useState([0, 100]);
   const [userLocation, setUserLocation] = useState(null);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+
+  const loadFavoriteIds = () => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = window.localStorage.getItem('favorite_event_ids');
+      const parsed = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch (e) {
+      return [];
+    }
+  };
 
   useEffect(() => {
     if (!navigator || !navigator.geolocation) return;
@@ -24,6 +37,22 @@ export default function EventsPage() {
       },
       { enableHighAccuracy: false, maximumAge: 1000 * 60 * 5 }
     );
+  }, []);
+
+  useEffect(() => {
+    setFavoriteIds(loadFavoriteIds());
+
+    const handleFavoritesUpdated = () => {
+      setFavoriteIds(loadFavoriteIds());
+    };
+
+    window.addEventListener('favorites-updated', handleFavoritesUpdated);
+    window.addEventListener('storage', handleFavoritesUpdated);
+
+    return () => {
+      window.removeEventListener('favorites-updated', handleFavoritesUpdated);
+      window.removeEventListener('storage', handleFavoritesUpdated);
+    };
   }, []);
 
   const distanceKm = (lat1, lon1, lat2, lon2) => {
@@ -39,6 +68,7 @@ export default function EventsPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     let list = eventsData.filter(ev => {
+      if (showFavoritesOnly && !favoriteIds.includes(String(ev.id))) return false;
       if (category && ev.category !== category) return false;
       const [minP, maxP] = participants;
       if (minP > 0 && (ev.participants ?? 0) < minP) return false;
@@ -71,7 +101,7 @@ export default function EventsPage() {
     }
 
     return list;
-  }, [search, category, sort, participants, userLocation]);
+  }, [search, category, sort, participants, userLocation, showFavoritesOnly, favoriteIds]);
 
   return (
     <section className="events-page py-6">
@@ -89,6 +119,8 @@ export default function EventsPage() {
                 setSort={setSort}
                 participants={participants}
                 setParticipants={setParticipants}
+                showFavoritesOnly={showFavoritesOnly}
+                setShowFavoritesOnly={setShowFavoritesOnly}
                 showSearch={false}
               />
             </div>
@@ -157,9 +189,11 @@ export default function EventsPage() {
                   <EventCard event={ev} />
                 </div>
               ))}
-              <div className="col">
-                <AddEventCard />
-              </div>
+              {!showFavoritesOnly && (
+                <div className="col">
+                  <AddEventCard />
+                </div>
+              )}
               {filtered.length === 0 && <p>No events match your search.</p>}
             </div>
           </main>

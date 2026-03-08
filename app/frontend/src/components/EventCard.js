@@ -5,6 +5,19 @@ import slugify from 'react-slugify';
 import { Rating } from '@mui/material';
 import { formatEventTime } from '../utils/dateUtils';
 
+const FAVORITES_STORAGE_KEY = 'favorite_event_ids';
+
+const getFavoriteIds = () => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = window.localStorage.getItem(FAVORITES_STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
 function Thumbnail({ event }) {
   // prefer explicit event.image, otherwise pick a local template by id
   const publicUrl = process.env.PUBLIC_URL || '';
@@ -26,7 +39,9 @@ function Thumbnail({ event }) {
 
 export default function EventCard({ event }) {
   const timeDisplay = formatEventTime(event.startTime, event.endTime);
-  const [fav, setFav] = useState(Boolean(event.favorited));
+  const [fav, setFav] = useState(
+    Boolean(event.favorited) || getFavoriteIds().includes(String(event.id))
+  );
   const [pulse, setPulse] = useState(false);
   // portal data for heart-break overlay so animation is independent of list reordering
   const [breakPortal, setBreakPortal] = useState(null);
@@ -37,6 +52,17 @@ export default function EventCard({ event }) {
   const toggleFav = () => {
     setFav((prev) => {
       const newVal = !prev;
+
+      const favoriteIds = new Set(getFavoriteIds());
+      const currentId = String(event.id);
+      if (newVal) favoriteIds.add(currentId);
+      else favoriteIds.delete(currentId);
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...favoriteIds]));
+        window.dispatchEvent(new Event('favorites-updated'));
+      }
+
       if (newVal) {
         // favourited -> show pulse
         setPulse(true);
@@ -66,6 +92,10 @@ export default function EventCard({ event }) {
       return newVal;
     });
   };
+
+  useEffect(() => {
+    setFav(Boolean(event.favorited) || getFavoriteIds().includes(String(event.id)));
+  }, [event.id, event.favorited]);
 
   useEffect(() => {
     return () => {

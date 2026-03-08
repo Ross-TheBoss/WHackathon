@@ -10,6 +10,8 @@ export default function SearchFilter({
   setSort,
   participants,
   setParticipants,
+  showFavoritesOnly = false,
+  setShowFavoritesOnly = () => {},
   showSearch = true
 }) {
   const minLimit = 0;
@@ -103,6 +105,18 @@ export default function SearchFilter({
             )}
           />
         </div>
+      </div>
+
+      <div className="mb-2">
+        <button
+          type="button"
+          className="btn w-100 border-0 shadow-none"
+          style={showFavoritesOnly ? { backgroundColor: '#c5addc', color: 'white' } : { backgroundColor: 'white' }}
+          onClick={() => setShowFavoritesOnly((prev) => !prev)}
+        >
+          <i className={`me-1 ${showFavoritesOnly ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}`}></i>
+          Favorites only
+        </button>
       </div>
     </div>
   );
