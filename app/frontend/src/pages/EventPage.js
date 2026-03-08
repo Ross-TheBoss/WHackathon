@@ -18,10 +18,11 @@ export default function EventPage() {
 
   const publicUrl = process.env.PUBLIC_URL || '';
   const templates = [
-    `${publicUrl}/images/template-1.svg`,
-    `${publicUrl}/images/template-2.svg`,
-    `${publicUrl}/images/template-3.svg`,
-    `${publicUrl}/images/template-4.svg`,
+    `${publicUrl}/images/pottery.png`,
+    `${publicUrl}/images/yoga.jpeg`,
+    `${publicUrl}/images/tech.jpg`,
+    `${publicUrl}/images/salsa.jpg`,
+    `${publicUrl}/images/talk.jpg`,
   ];
   const heroUrl = event.image || templates[(Number(event.id) - 1) % templates.length];
 
