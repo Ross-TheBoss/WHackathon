@@ -30,7 +30,7 @@ export default function EventPage() {
   if (!event) return (
     <div className="event-page">
       <p>Event not found.</p>
-      <p><Link to="/">Back to events</Link></p>
+      <p><Link to="/events">Back to events</Link></p>
     </div>
   );
 
@@ -54,32 +54,30 @@ export default function EventPage() {
       </div>
 
       <header className="mb-3">
-        <div className="d-flex flex-wrap align-items-center justify-content-between">
-          <div>
-            <h1 className="display-5 fw-bold d-inline">{event.name}</h1>
-            <button className="btn btn-success ms-3" onClick={() => setShowModal(true)}>
-              Reserve
-            </button>
-          </div>
+        <div className="d-flex justify-content-between align-items-start mb-3">
+          <h1 className="display-5 fw-bold">{event.name}</h1>
+          <button className="btn btn-success" onClick={() => setShowModal(true)}>
+            Reserve
+          </button>
+        </div>
 
-          <div className="text-muted">
-            <small>By {event.author}</small>
+        <div className="text-muted">
+          <small>By {event.author}</small>
 
-            <div className="d-flex gap-3 align-items-center mt-2">
-              <span className="text-muted">
-                <i className="fa-solid fa-calendar-days me-2"></i>
-                {timeDisplay}
-              </span>
+          <div className="d-flex gap-3 align-items-center mt-2">
+            <span className="text-muted">
+              <i className="fa-solid fa-calendar-days me-2"></i>
+              {timeDisplay}
+            </span>
 
-              <span className="text-muted">
-                <i className="fa-solid fa-map-marker-alt me-2"></i>
-                {event.location}
-              </span>
+            <span className="text-muted">
+              <i className="fa-solid fa-map-marker-alt me-2"></i>
+              {event.location}
+            </span>
 
-              <span className="badge bg-secondary">
-                {event.category}
-              </span>
-            </div>
+            <span className="badge bg-secondary">
+              {event.category}
+            </span>
           </div>
         </div>
       </header>
@@ -113,7 +111,7 @@ export default function EventPage() {
       </section>
 
       <p className="btn btn-primary">
-        <Link className="text-white text-decoration-none" to="/">
+        <Link className="text-white text-decoration-none" to="/events">
           Back to events
         </Link>
       </p>
