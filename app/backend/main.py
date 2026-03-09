@@ -2,9 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from models import User, Event, Reviews, Registration
-from routers import login_auth
+from routers import login_auth, crud
 
-app = FastAPI(title="Woman First API")
+app = FastAPI(
+    title="Woman First API",
+    description="RESTful API with full CRUD operations for Users, Events, Reviews, and Registrations",
+    version="1.0.0"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,7 +19,8 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 
-app.include_router(login_auth.router)
+app.include_router(login_auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(crud.router, prefix="/api/v1", tags=["CRUD Operations"])
 
 @app.get("/")
 def root():

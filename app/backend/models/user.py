@@ -14,7 +14,7 @@ class User(Base):
     name = Column(String(100), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     age = Column(Integer, nullable=True)
-    hashed_password = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), nullable=False)
 
     # relationships

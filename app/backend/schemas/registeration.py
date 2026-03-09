@@ -7,7 +7,8 @@ class RegistrationBase(BaseModel):
     event_id: int
 
 class RegistrationResponse(RegistrationBase):
-    id: int
-
+    user_name: str
+    
     class Config:
         orm_mode = True
+        from_attributes = True
