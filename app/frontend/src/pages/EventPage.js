@@ -8,10 +8,12 @@ import { Rating } from '@mui/material';
 import GroupChat from '../components/GroupChat';
 
 export default function EventPage() {
+  const RESERVE_MODAL_TOP = 72;
   const { id } = useParams();
   const event = eventsData.find(e => slugify(e.name) === id);
 
   const [showModal, setShowModal] = useState(false);
+  const [modalLaunchOffset, setModalLaunchOffset] = useState({ x: 0, y: 0 });
   const [username, setUsername] = useState('');
   const [groupChat, setGroupChat] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -61,6 +63,17 @@ export default function EventPage() {
     alert("Thank you for your review!");
   };
 
+  const handleOpenReserveModal = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = rect.left + (rect.width / 2);
+    const clickY = rect.top + (rect.height / 2);
+    const offsetX = clickX - (window.innerWidth / 2);
+    const offsetY = clickY - RESERVE_MODAL_TOP;
+
+    setModalLaunchOffset({ x: offsetX, y: offsetY });
+    setShowModal(true);
+  };
+
   if (!event) return (
     <div className="event-page">
       <p>Event not found.</p>
@@ -70,11 +83,11 @@ export default function EventPage() {
 
   const publicUrl = process.env.PUBLIC_URL || '';
   const templates = [
-    `${publicUrl}/images/pottery.png`,
-    `${publicUrl}/images/yoga.jpeg`,
-    `${publicUrl}/images/tech.jpg`,
-    `${publicUrl}/images/salsa.jpg`,
-    `${publicUrl}/images/talk.jpg`,
+    `${publicUrl}/images/pottery_hero.png`,
+    `${publicUrl}/images/yoga_hero.png`,
+    `${publicUrl}/images/tech_hero.png`,
+    `${publicUrl}/images/salsa_hero.png`,
+    `${publicUrl}/images/talk_hero.png`,
   ];
 
   const heroUrl = event.image || templates[(Number(event.id) - 1) % templates.length];
@@ -82,7 +95,7 @@ export default function EventPage() {
 
   return (
     <article className="event-page container px-4 px-lg-5 py-4">
-      <div className="card bg-white shadow">
+      <div className="card">
         <div className="event-hero mb-4 rounded overflow-hidden">
           <img src={heroUrl} alt={event.name} className="img-fluid w-100 hero-img" />
         </div>
@@ -101,7 +114,7 @@ export default function EventPage() {
                     Group Chat
                   </button>
                 )}
-                <button className="btn btn-success" onClick={() => setShowModal(true)}>
+                <button className="btn btn-success" onClick={handleOpenReserveModal}>
                   Reserve
                 </button>
               </div>
@@ -159,7 +172,7 @@ export default function EventPage() {
             {reviews && reviews.length > 0 ? (
               <div className="reviews-list mb-4">
                 {reviews.map((review) => (
-                  <div key={review.id} className="card mb-3">
+                  <div key={review.id} className="card mb-3 review-card">
                     <div className="card-body">
                       <div className="d-flex justify-content-between align-items-start mb-2">
                         <div>
@@ -220,18 +233,26 @@ export default function EventPage() {
             </div>
           </section>
 
-          <p className="btn btn-primary mt-3">
-            <Link className="text-white text-decoration-none" to="/events">
-              Back to events
-            </Link>
-          </p>
+          <div className="back-to-events-wrap">
+            <p className="btn btn-primary mb-0">
+              <Link className="text-white text-decoration-none" to="/events">
+                Back to events
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
       {showModal && (
         <>
-          <div className="modal-backdrop fade show" onClick={() => setShowModal(false)}></div>
-          <div className="modal show fade d-block" tabIndex="-1">
-            <div className="modal-dialog">
+          <div className="modal-backdrop show reserve-modal-backdrop" onClick={() => setShowModal(false)}></div>
+          <div className="modal show d-block reserve-modal" tabIndex="-1">
+            <div
+              className="modal-dialog reserve-modal-dialog"
+              style={{
+                '--reserve-from-x': `${modalLaunchOffset.x}px`,
+                '--reserve-from-y': `${modalLaunchOffset.y}px`
+              }}
+            >
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Reserve Spot</h5>

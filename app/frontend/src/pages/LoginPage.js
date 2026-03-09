@@ -19,7 +19,7 @@ export default function LoginPage() {
     <div className="container py-5">
       <div className="row justify-content-center">
         <div className="col-md-6">
-          <div className="card p-4 shadow-sm">
+          <div className="card p-4">
             <h1 className="display-6 fw-bold mb-4 text-center">Login</h1>
             
             <form onSubmit={handleSubmit}>

@@ -128,7 +128,7 @@ export default function EventsPage() {
 
           <main className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <div className="w-75 mx-auto">
+              <div className="w-75">
                 <TextField
                   aria-label="Search events"
                   placeholder="Search"
@@ -161,29 +161,29 @@ export default function EventsPage() {
                 <div className="btn-group" role="group" aria-label="Sort options">
                   <button
                     className="btn btn-sm text-nowrap btn-light border-0 shadow-none"
-                    style={sort === 'newest' ? { backgroundColor: '#c5addc', color: 'white' } : {}}
+                    style={sort === 'newest' ? { backgroundColor: '#192b31', color: 'white' } : {}}
                     onClick={() => setSort('newest')}
                   >Newest</button>
                   <button
                     className="btn btn-sm text-nowrap btn-light border-0 shadow-none"
-                    style={sort === 'soonest' ? { backgroundColor: '#c5addc', color: 'white' } : {}}
+                    style={sort === 'soonest' ? { backgroundColor: '#192b31', color: 'white' } : {}}
                     onClick={() => setSort('soonest')}
                   >Soonest</button>
                   <button
                     className="btn btn-sm text-nowrap btn-light border-0 shadow-none"
-                    style={sort === 'closest' ? { backgroundColor: '#c5addc', color: 'white' } : {}}
+                    style={sort === 'closest' ? { backgroundColor: '#192b31', color: 'white' } : {}}
                     onClick={() => setSort('closest')}
                   >Closest</button>
                   <button
                     className="btn btn-sm text-nowrap btn-light border-0 shadow-none"
-                    style={sort === 'nameAsc' ? { backgroundColor: '#c5addc', color: 'white' } : {}}
+                    style={sort === 'nameAsc' ? { backgroundColor: '#192b31', color: 'white' } : {}}
                     onClick={() => setSort('nameAsc')}
                   >A–Z</button>
                 </div>
               </div>
             </div>
 
-            <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
               {filtered.map(ev => (
                 <div className="col" key={ev.id}>
                   <EventCard event={ev} />

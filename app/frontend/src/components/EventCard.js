@@ -106,7 +106,7 @@ export default function EventCard({ event }) {
 
   return (
     <>
-    <article tabIndex={0} className="event-card card h-100 shadow-sm position-relative">
+    <article tabIndex={0} className="event-card card h-100 position-relative">
       <div ref={wrapRef} className="thumb-wrap position-relative">
         <Thumbnail event={event} />
         <div className={`heart-overlay ${pulse ? 'show' : ''}`} aria-hidden>
@@ -129,7 +129,10 @@ export default function EventCard({ event }) {
       <div className="card-body">
         <Link to={`/events/${slugify(event.name)}`} className="stretched-link" aria-label={`Open ${event.name}`} />
         <h3 className="event-name"><Link to={`/events/${slugify(event.name)}`}>{event.name}</Link></h3>
-        <div className="event-meta text-muted small">{event.category} • {event.author}</div>
+        <div className="event-meta text-muted small d-flex align-items-center gap-2 flex-wrap">
+          <span className="badge bg-secondary event-category-badge">{event.category}</span>
+          <span>By {event.author}</span>
+        </div>
 
         <div className="event-info d-flex gap-3 mt-2 text-muted small">
           <div className="time"><i className="fa-regular fa-clock me-1"></i> {timeDisplay}</div>

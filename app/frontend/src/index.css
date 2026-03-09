@@ -1,14 +1,125 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --body-font: 'Work Sans', 'Segoe UI', sans-serif;
+  --title-font: 'Work Sans', 'Segoe UI', sans-serif;
+}
 
 /* Preserve a few global styles */
 body {
   margin: 0;
+  font-family: var(--body-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+p,
+span,
+li,
+a,
+label,
+small,
+button,
+input,
+textarea,
+select {
+  font-family: var(--body-font);
+}
+
+/* Keep all page/card/modal titles consistent. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.display-1,
+.display-2,
+.display-3,
+.display-4,
+.display-5,
+.display-6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6,
+.card-title,
+.modal-title,
+.event-name {
+  font-family: var(--title-font);
+  font-weight: 700;
+}
+
+/* Slightly upscale title sizes across pages/components. */
+h1,
+.h1 {
+  font-size: clamp(2.25rem, 4vw, 2.9rem);
+}
+
+h2,
+.h2 {
+  font-size: clamp(1.85rem, 3.2vw, 2.35rem);
+}
+
+h3,
+.h3,
+.card-title,
+.event-name {
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+}
+
+h4,
+.h4,
+.modal-title {
+  font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Global flattening: square corners and no shadows across the app. */
+:root {
+  --bs-border-radius: 0;
+  --bs-border-radius-sm: 0;
+  --bs-border-radius-lg: 0;
+  --bs-border-radius-xl: 0;
+  --bs-border-radius-xxl: 0;
+  --bs-border-radius-pill: 0;
+  --bs-box-shadow: none;
+  --bs-box-shadow-sm: none;
+  --bs-box-shadow-lg: none;
+  --bs-box-shadow-inset: none;
+}
+
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  outline: none !important;
+}
+
+*:focus,
+*:focus-visible {
+  outline: none !important;
+}
+
+/* Keep tile/sheet surfaces consistent across pages. */
+.card,
+.MuiPaper-root,
+.modal-content {
+  background-color: #efefef !important;
+}
+
+/* Exception: keep group chat readable above page content. */
+.group-chat-window {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28) !important;
 }

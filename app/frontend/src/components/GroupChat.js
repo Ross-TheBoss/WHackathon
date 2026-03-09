@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Box, Paper, TextField, Button, Typography, Avatar, IconButton } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
@@ -6,6 +7,8 @@ import CloseIcon from '@mui/icons-material/Close';
 export default function GroupChat({ eventName, eventId, isOpen, onClose, username }) {
   const storageKey = `groupchat_${eventId}`;
   const messagesEndRef = useRef(null);
+  const chatWindowRef = useRef(null);
+  const dragRef = useRef({ dragging: false, offsetX: 0, offsetY: 0 });
 
   // Load messages from localStorage or use default mock messages
   const getInitialMessages = () => {
@@ -32,6 +35,49 @@ export default function GroupChat({ eventName, eventId, isOpen, onClose, usernam
 
   const [messages, setMessages] = useState(getInitialMessages());
   const [newMessage, setNewMessage] = useState('');
+  const [position, setPosition] = useState({ left: null, top: null });
+
+  const clampToViewport = (left, top) => {
+    const width = chatWindowRef.current?.offsetWidth ?? 380;
+    const height = chatWindowRef.current?.offsetHeight ?? 500;
+    const maxLeft = Math.max(0, window.innerWidth - width);
+    const maxTop = Math.max(0, window.innerHeight - height);
+
+    return {
+      left: Math.min(Math.max(0, left), maxLeft),
+      top: Math.min(Math.max(0, top), maxTop)
+    };
+  };
+
+  const stopDragging = () => {
+    dragRef.current.dragging = false;
+    document.removeEventListener('mousemove', handleDragging);
+    document.removeEventListener('mouseup', stopDragging);
+    document.body.style.userSelect = '';
+  };
+
+  const handleDragging = (e) => {
+    if (!dragRef.current.dragging) return;
+
+    const nextLeft = e.clientX - dragRef.current.offsetX;
+    const nextTop = e.clientY - dragRef.current.offsetY;
+    setPosition(clampToViewport(nextLeft, nextTop));
+  };
+
+  const handleDragStart = (e) => {
+    if (e.button !== 0 || !chatWindowRef.current) return;
+
+    const rect = chatWindowRef.current.getBoundingClientRect();
+    dragRef.current = {
+      dragging: true,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top
+    };
+
+    document.addEventListener('mousemove', handleDragging);
+    document.addEventListener('mouseup', stopDragging);
+    document.body.style.userSelect = 'none';
+  };
 
   // Save messages to localStorage whenever they change
   useEffect(() => {
@@ -49,6 +95,37 @@ export default function GroupChat({ eventName, eventId, isOpen, onClose, usernam
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const width = chatWindowRef.current?.offsetWidth ?? 380;
+    const height = chatWindowRef.current?.offsetHeight ?? 500;
+    const defaultLeft = Math.max(0, window.innerWidth - width - 20);
+    const defaultTop = Math.max(0, window.innerHeight - height - 20);
+
+    setPosition((prev) => {
+      if (prev.left === null || prev.top === null) {
+        return { left: defaultLeft, top: defaultTop };
+      }
+      return clampToViewport(prev.left, prev.top);
+    });
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition((prev) => {
+        if (prev.left === null || prev.top === null) return prev;
+        return clampToViewport(prev.left, prev.top);
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      stopDragging();
+    };
+  }, []);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -90,36 +167,49 @@ export default function GroupChat({ eventName, eventId, isOpen, onClose, usernam
 
   if (!isOpen) return null;
 
-  return (
+  const chatUi = (
     <Paper 
-      elevation={6} 
+      ref={chatWindowRef}
+      className="group-chat-window"
+      elevation={0} 
       sx={{ 
         position: 'fixed', 
-        bottom: 20, 
-        right: 20, 
+        top: position.top ?? 'auto',
+        left: position.left ?? 'auto',
+        bottom: position.top === null ? 20 : 'auto',
+        right: position.left === null ? 20 : 'auto',
         width: 380, 
         height: 500, 
+        minWidth: 300,
+        minHeight: 340,
+        maxWidth: '90vw',
+        maxHeight: '85vh',
         display: 'flex', 
         flexDirection: 'column',
-        zIndex: 1000
+        zIndex: 1000,
+        resize: 'both',
+        overflow: 'hidden'
       }}
     >
       {/* Header */}
       <Box 
+        onMouseDown={handleDragStart}
         sx={{ 
           p: 2, 
-          backgroundColor: '#c5addc', 
+          backgroundColor: '#192b31', 
           color: 'white', 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
-          borderRadius: '4px 4px 0 0'
+          borderRadius: '4px 4px 0 0',
+          cursor: 'move',
+          userSelect: 'none'
         }}
       >
         <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600 }}>
           {eventName} - Group Chat
         </Typography>
-        <IconButton size="small" onClick={onClose} sx={{ color: 'white' }}>
+        <IconButton size="small" onMouseDown={(e) => e.stopPropagation()} onClick={onClose} sx={{ color: 'white' }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -167,8 +257,7 @@ export default function GroupChat({ eventName, eventId, isOpen, onClose, usernam
               <Paper 
                 sx={{ 
                   p: 1.5, 
-                  backgroundColor: 'white',
-                  boxShadow: 1
+                  backgroundColor: 'white'
                 }}
               >
                 <Typography variant="body2">{msg.content}</Typography>
@@ -217,4 +306,7 @@ export default function GroupChat({ eventName, eventId, isOpen, onClose, usernam
       </Box>
     </Paper>
   );
+
+  if (typeof document === 'undefined') return chatUi;
+  return createPortal(chatUi, document.body);
 }
