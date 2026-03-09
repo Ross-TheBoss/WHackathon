@@ -9,7 +9,7 @@ ENV REACT_APP_API_URL=$REACT_APP_API_URL
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --prefer-offline --no-audit --progress=false --loglevel=error
+RUN npm install --prefer-offline --no-audit --progress=false --loglevel=error
 
 # Copy the rest of the application
 COPY . .
