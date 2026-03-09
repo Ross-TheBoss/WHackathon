@@ -3,12 +3,16 @@ services:
     build:
       context: ./app/backend
       dockerfile: Dockerfile.backend
+    container_name: whackathon-backend
     ports:
       - "8000:8000"
-    volumes:
-      - ./app/backend:/app
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:?set in .env}:${MYSQL_PASSWORD:?set in .env}@mysql:3306/${MYSQL_DATABASE:?set in .env}
+      SECRET_KEY: ${SECRET_KEY:?set in .env}
+      PYTHONUNBUFFERED: "1"
     networks:
       - app-network
+    restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
@@ -17,34 +21,40 @@ services:
     build:
       context: ./app/frontend
       dockerfile: Dockerfile.frontend
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
+    container_name: whackathon-frontend
     ports:
-      - "3000:3000"
-    volumes:
-      - ./app/frontend:/app
-      - /app/node_modules # Prevent overwriting node_modules with host's empty directory
+      - "80:80"
     networks:
       - app-network
+    restart: unless-stopped
     depends_on:
       - backend
-      - mysql
   
   mysql:
     image: mysql:8
-    container_name: mysql-container
+    container_name: whackathon-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: NewStrongRootPassword!123
-      MYSQL_DATABASE: whackathon
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?set in .env}
+      MYSQL_USER: ${MYSQL_USER:?set in .env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set in .env}
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
       interval: 5s
       timeout: 3s
-      retries: 10
-      start_period: 30s
+      retries: 20
+      start_period: 40s
+    volumes:
+      - mysql-data:/var/lib/mysql
     networks:
       - app-network
+    restart: unless-stopped
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mysql-data:
