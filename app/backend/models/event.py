@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum, DateTime, Text, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -23,8 +23,8 @@ class Event(Base):
     title = Column(String(150), nullable=False)
     description = Column(Text, nullable=True)
     location = Column(String(255), nullable=False)
-    longitude = Column(float, nullable=True)
-    latitude = Column(float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True)
     event_type = Column(Enum(EventType), nullable=False)
     category = Column(Enum(EventCategory), nullable=False)
     capacity = Column(Integer, nullable=False)
@@ -35,6 +35,5 @@ class Event(Base):
 
     organiser_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     organiser = relationship("User", back_populates="events")
-    ratings = relationship("Rating", back_populates="event")
-    reviews = relationship("Review", back_populates="event")
+    reviews = relationship("Reviews", back_populates="event")
     registrations = relationship("Registration", back_populates="event")

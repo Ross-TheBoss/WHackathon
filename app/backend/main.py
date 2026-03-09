@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from models import User
+from models import User, Event, Reviews, Registration
+from routers import login_auth
 
 app = FastAPI(title="Woman First API")
 
@@ -13,6 +14,8 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
+
+app.include_router(login_auth.router)
 
 @app.get("/")
 def root():

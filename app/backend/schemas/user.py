@@ -1,23 +1,26 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from enum import Enum
 
 class UserRole(str, Enum):
     participant = "participant"
     organiser = "organiser"
 
-class UserBase(BaseModel):
+class UserRegister(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     age: int
-    password:str
+    password: str
     role: UserRole
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
 class UserResponse(BaseModel):
     id: int
     name: str
-    email: EmailStr
     role: UserRole
     age: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

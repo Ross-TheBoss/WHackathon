@@ -3,20 +3,21 @@ from sqlalchemy.orm import relationship
 from database import Base
 import enum
 
-class userRole(str, enum.Enum):
-    participant="participant"
-    organiser="organiser"
+class UserRole(str, enum.Enum):
+    participant = "participant"
+    organiser = "organiser"
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
     age = Column(Integer, nullable=True)
-    role = Column(Enum(userRole), nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    role = Column(Enum(UserRole), nullable=False)
 
+    # relationships
     events = relationship("Event", back_populates="organiser")
-    messages = relationship("Message", back_populates="user")
-    chat_memberships = relationship("ChatMembership", back_populates="user")
+    registrations = relationship("Registration", back_populates="user")
+    reviews = relationship("Reviews", back_populates="user")
