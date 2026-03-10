@@ -1,14 +1,22 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class ReviewBase(BaseModel):
     rating: int
-    text: str | None = None
+    text: Optional[str] = None
     user_id: int
     event_id: int
 
-class ReviewResponse(ReviewBase):
+class ReviewResponse(BaseModel):
     id: int
+    rating: int
+    text: Optional[str] = None
+    user_id: int
+    event_id: int
+    author: str = ""
+    comment: str = ""
+    date: str = ""
 
     class Config:
-        orm_mode = True
+        from_attributes = True

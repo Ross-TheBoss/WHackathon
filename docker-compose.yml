@@ -22,7 +22,7 @@ services:
       context: ./app/frontend
       dockerfile: Dockerfile.frontend
       args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
+        REACT_APP_API_URL: ""
     container_name: whackathon-frontend
     ports:
       - "80:80"

@@ -22,6 +22,65 @@ from datetime import datetime
 router = APIRouter()
 
 # ============================================================================
+# RESPONSE FORMATTERS
+# ============================================================================
+
+def format_event(event) -> dict:
+    """Convert Event ORM object to frontend-compatible dict."""
+    avg_rating = 0.0
+    if event.reviews:
+        ratings = [r.rating for r in event.reviews if r.rating is not None]
+        avg_rating = sum(ratings) / len(ratings) if ratings else 0.0
+
+    formatted_reviews = []
+    for r in (event.reviews or []):
+        formatted_reviews.append({
+            "id": r.id,
+            "author": r.user.name if r.user else "Anonymous",
+            "rating": r.rating,
+            "comment": r.text or "",
+            "date": r.created_at.isoformat()[:10] if r.created_at else "",
+        })
+
+    cat = event.category
+    category_str = cat.value if hasattr(cat, "value") else str(cat)
+    etype = event.event_type
+    etype_str = etype.value if hasattr(etype, "value") else str(etype)
+
+    return {
+        "id": event.id,
+        "name": event.title,
+        "author": event.organiser.name if event.organiser else "",
+        "category": category_str,
+        "startTime": event.start_time.isoformat() if event.start_time else None,
+        "endTime": event.end_time.isoformat() if event.end_time else None,
+        "location": event.location,
+        "longitude": event.longitude,
+        "latitude": event.latitude,
+        "participants": len(event.registrations) if event.registrations is not None else 0,
+        "rating": round(avg_rating, 1),
+        "description": event.description or "",
+        "reviews": formatted_reviews,
+        "groups": event.groups or [],
+        "event_type": etype_str,
+        "capacity": event.capacity,
+        "organiser_id": event.organiser_id,
+    }
+
+def format_review(review) -> dict:
+    """Convert Reviews ORM object to frontend-compatible dict."""
+    return {
+        "id": review.id,
+        "rating": review.rating,
+        "text": review.text,
+        "user_id": review.user_id,
+        "event_id": review.event_id,
+        "author": review.user.name if review.user else "Anonymous",
+        "comment": review.text or "",
+        "date": review.created_at.isoformat()[:10] if review.created_at else "",
+    }
+
+# ============================================================================
 # PYDANTIC SCHEMAS FOR UPDATE OPERATIONS
 # ============================================================================
 
@@ -141,6 +200,24 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+@router.get("/users/{user_id}/registered-events", tags=["Users"])
+def get_user_registered_events(user_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve all events a user is registered for.
+    
+    - **user_id**: The ID of the user
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    registrations = db.query(Registration).filter(Registration.user_id == user_id).all()
+    events = []
+    for reg in registrations:
+        event = db.query(Event).filter(Event.id == reg.event_id).first()
+        if event:
+            events.append(format_event(event))
+    return events
+
 @router.put("/users/{user_id}", response_model=UserResponse, tags=["Users"])
 def update_user(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
     """
@@ -235,12 +312,13 @@ def create_event(event: EventCreate, db: Session = Depends(get_db)):
         capacity=event.capacity,
         start_time=start_dt,
         end_time=end_dt,
-        organiser_id=event.organiser_id
+        organiser_id=event.organiser_id,
+        groups=event.groups,
     )
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
-    return new_event
+    return format_event(new_event)
 
 @router.get("/events", response_model=List[EventResponse], tags=["Events"])
 def get_all_events(
@@ -270,7 +348,7 @@ def get_all_events(
         query = query.filter(Event.organiser_id == organiser_id)
     
     events = query.offset(skip).limit(limit).all()
-    return events
+    return [format_event(e) for e in events]
 
 @router.get("/events/{event_id}", response_model=EventResponse, tags=["Events"])
 def get_event(event_id: int, db: Session = Depends(get_db)):
@@ -282,7 +360,7 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    return event
+    return format_event(event)
 
 @router.put("/events/{event_id}", response_model=EventResponse, tags=["Events"])
 def update_event(event_id: int, event_update: EventUpdate, db: Session = Depends(get_db)):
@@ -328,7 +406,7 @@ def update_event(event_id: int, event_update: EventUpdate, db: Session = Depends
     
     db.commit()
     db.refresh(db_event)
-    return db_event
+    return format_event(db_event)
 
 @router.delete("/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Events"])
 def delete_event(event_id: int, db: Session = Depends(get_db)):
@@ -382,7 +460,7 @@ def create_review(review: ReviewCreate, db: Session = Depends(get_db)):
     db.add(new_review)
     db.commit()
     db.refresh(new_review)
-    return new_review
+    return format_review(new_review)
 
 @router.get("/reviews", response_model=List[ReviewResponse], tags=["Reviews"])
 def get_all_reviews(
@@ -412,7 +490,7 @@ def get_all_reviews(
         query = query.filter(Reviews.rating >= min_rating)
     
     reviews = query.offset(skip).limit(limit).all()
-    return reviews
+    return [format_review(r) for r in reviews]
 
 @router.get("/reviews/{review_id}", response_model=ReviewResponse, tags=["Reviews"])
 def get_review(review_id: int, db: Session = Depends(get_db)):
@@ -424,7 +502,7 @@ def get_review(review_id: int, db: Session = Depends(get_db)):
     review = db.query(Reviews).filter(Reviews.id == review_id).first()
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
-    return review
+    return format_review(review)
 
 @router.put("/reviews/{review_id}", response_model=ReviewResponse, tags=["Reviews"])
 def update_review(review_id: int, review_update: ReviewUpdate, db: Session = Depends(get_db)):
@@ -461,7 +539,7 @@ def update_review(review_id: int, review_update: ReviewUpdate, db: Session = Dep
     
     db.commit()
     db.refresh(db_review)
-    return db_review
+    return format_review(db_review)
 
 @router.delete("/reviews/{review_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Reviews"])
 def delete_review(review_id: int, db: Session = Depends(get_db)):

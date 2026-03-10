@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import slugify from 'react-slugify';
-import eventsData from '../data/mockEvents';
 import ReactMarkdown from 'react-markdown';
 import { formatEventTime } from '../utils/dateUtils';
 import { Rating } from '@mui/material';
 import GroupChat from '../components/GroupChat';
-import { addReservationForCurrentUser, getCurrentUser, getReservationsForUser } from '../utils/authStorage';
+import { getCurrentUser } from '../utils/authStorage';
+import { fetchEvents, createRegistration, createReview } from '../utils/api';
 
 export default function EventPage() {
   const RESERVE_MODAL_TOP = 72;
   const navigate = useNavigate();
   const { id } = useParams();
-  const event = eventsData.find(e => slugify(e.name) === id);
 
+  const [event, setEvent] = useState(null);
+  const [loadingEvent, setLoadingEvent] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalLaunchOffset, setModalLaunchOffset] = useState({ x: 0, y: 0 });
   const [currentUser, setCurrentUser] = useState(null);
@@ -21,27 +21,66 @@ export default function EventPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [newReview, setNewReview] = useState({ rating: 5, comment: '', author: '' });
-  const [reviews, setReviews] = useState(event?.reviews || []);
+  const [reviews, setReviews] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [registeredUsername, setRegisteredUsername] = useState('');
 
+  // Load event from API (id is either a numeric string or a slug)
+  useEffect(() => {
+    setLoadingEvent(true);
+    // Try direct numeric ID first, then fall back to listing all events and matching
+    const numericId = Number(id);
+    const load = !isNaN(numericId) && numericId > 0
+      ? import('../utils/api').then(({ fetchEvent }) => fetchEvent(numericId))
+      : fetchEvents().then((all) => {
+          const found = all.find(
+            (e) => String(e.id) === id || e.name?.toLowerCase().replace(/\s+/g, '-') === id
+          );
+          if (!found) throw new Error('Not found');
+          return found;
+        });
+
+    load
+      .then((data) => {
+        setEvent(data);
+        setReviews(data.reviews || []);
+      })
+      .catch(() => {
+        // Fallback: look in mock data via slug
+        import('../data/mockEvents').then(({ default: mockData }) => {
+          import('react-slugify').then(({ default: slugify }) => {
+            const found = mockData.find((e) => slugify(e.name) === id);
+            setEvent(found || null);
+            setReviews(found?.reviews || []);
+          });
+        });
+      })
+      .finally(() => setLoadingEvent(false));
+  }, [id]);
+
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
+    // Check registration state from backend if user logged in
     if (user && event) {
-      const res = getReservationsForUser(user.email);
-      if (res.includes(String(event.id))) {
-        setIsRegistered(true);
-        setRegisteredUsername(user.name);
-      }
+      import('../utils/api').then(({ fetchRegistrations }) => {
+        fetchRegistrations({ user_id: user.id, event_id: event.id })
+          .then((regs) => {
+            if (regs && regs.length > 0) {
+              setIsRegistered(true);
+              setRegisteredUsername(user.name);
+            }
+          })
+          .catch(() => {});
+      });
     }
     const handler = () => setCurrentUser(getCurrentUser());
     window.addEventListener('auth-changed', handler);
     return () => window.removeEventListener('auth-changed', handler);
   }, [event]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!currentUser) {
       navigate('/login', { state: { message: 'Please log in to reserve a spot.' } });
       return;
@@ -52,7 +91,12 @@ export default function EventPage() {
     }
 
     try {
-      addReservationForCurrentUser(event.id);
+      await createRegistration({
+        name: currentUser.name,
+        join_group_chat: groupChat,
+        user_id: currentUser.id,
+        event_id: event.id,
+      });
     } catch (err) {
       alert(err.message || 'Could not save reservation');
       return;
@@ -69,7 +113,7 @@ export default function EventPage() {
     setAcceptedTerms(false);
   };
 
-  const handleReviewSubmit = (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     
     if (!newReview.author.trim() || !newReview.comment.trim()) {
@@ -77,15 +121,39 @@ export default function EventPage() {
       return;
     }
 
-    const review = {
-      id: Date.now(),
-      author: newReview.author,
-      rating: newReview.rating,
-      comment: newReview.comment,
-      date: new Date().toISOString().split('T')[0]
-    };
+    if (currentUser) {
+      // Submit to backend
+      try {
+        const saved = await createReview({
+          rating: newReview.rating,
+          text: newReview.comment,
+          user_id: currentUser.id,
+          event_id: event.id,
+        });
+        const review = {
+          id: saved.id || Date.now(),
+          author: newReview.author,
+          rating: saved.rating,
+          comment: saved.text || newReview.comment,
+          date: saved.date || new Date().toISOString().split('T')[0],
+        };
+        setReviews([...reviews, review]);
+      } catch (err) {
+        alert(err.message || 'Could not submit review');
+        return;
+      }
+    } else {
+      // Local only
+      const review = {
+        id: Date.now(),
+        author: newReview.author,
+        rating: newReview.rating,
+        comment: newReview.comment,
+        date: new Date().toISOString().split('T')[0],
+      };
+      setReviews([...reviews, review]);
+    }
 
-    setReviews([...reviews, review]);
     setNewReview({ rating: 5, comment: '', author: '' });
     alert("Thank you for your review!");
   };
@@ -105,6 +173,12 @@ export default function EventPage() {
     setModalLaunchOffset({ x: offsetX, y: offsetY });
     setShowModal(true);
   };
+
+  if (loadingEvent) return (
+    <div className="event-page container px-4 py-4">
+      <p>Loading event...</p>
+    </div>
+  );
 
   if (!event) return (
     <div className="event-page">
@@ -173,10 +247,10 @@ export default function EventPage() {
               <section className="event-description markdown-body">
                 <ReactMarkdown
                   components={{
-                    h1: ({node, ...props}) => <h1 className="display-5 fw-bold" {...props} />,
-                    h2: ({node, ...props}) => <h2 className="h4 fw-semibold" {...props} />,
-                    h3: ({node, ...props}) => <h3 className="h5" {...props} />,
-                    h4: ({node, ...props}) => <h4 className="h6" {...props} />,
+                    h1: ({node, children, ...props}) => <h1 className="display-5 fw-bold" {...props}>{children}</h1>,
+                    h2: ({node, children, ...props}) => <h2 className="h4 fw-semibold" {...props}>{children}</h2>,
+                    h3: ({node, children, ...props}) => <h3 className="h5" {...props}>{children}</h3>,
+                    h4: ({node, children, ...props}) => <h4 className="h6" {...props}>{children}</h4>,
                     p: ({node, ...props}) => <p className="mb-2" {...props} />,
                     ul: ({node, ...props}) => <ul className="mb-2" {...props} />,
                     ol: ({node, ...props}) => <ol className="mb-2" {...props} />,

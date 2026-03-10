@@ -1,14 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import slugify from 'react-slugify';
-import eventsData from '../data/mockEvents';
 import { formatEventTime } from '../utils/dateUtils';
 import {
   getCurrentUser,
-  getHostedEventsForUser,
-  getReservationsForUser,
   updateCurrentUser,
 } from '../utils/authStorage';
+import { fetchUserRegisteredEvents, fetchEvents } from '../utils/api';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -53,18 +50,16 @@ export default function ProfilePage() {
   // Load reservation + hosted lists when user changes
   useEffect(() => {
     if (!currentUser) return;
-    const resIds = getReservationsForUser(currentUser.email).map(String);
-    const hostedIds = getHostedEventsForUser(currentUser.email).map(String);
 
-    setReservations(eventsData.filter((event) => resIds.includes(String(event.id))));
+    // Registered events from API
+    fetchUserRegisteredEvents(currentUser.id)
+      .then((events) => setReservations(Array.isArray(events) ? events : []))
+      .catch(() => setReservations([]));
 
-    // Treat both explicit hostedIds and authored events as "hosted"
-    const authored = eventsData.filter((event) => event.author === currentUser.name);
-    const hostedFromIds = eventsData.filter((event) => hostedIds.includes(String(event.id)));
-    const combined = [...authored, ...hostedFromIds].filter(
-      (value, index, self) => self.findIndex((e) => e.id === value.id) === index
-    );
-    setHosted(combined);
+    // Hosted events: events where organiser_id matches current user
+    fetchEvents({ organiser_id: currentUser.id })
+      .then((events) => setHosted(Array.isArray(events) ? events : []))
+      .catch(() => setHosted([]));
   }, [currentUser]);
 
   const stats = useMemo(() => ({
@@ -96,7 +91,7 @@ export default function ProfilePage() {
       <div className="card-body d-flex justify-content-between align-items-start">
         <div>
           <h5 className="card-title mb-1">
-            <Link className="text-decoration-none" to={`/events/${slugify(event.name)}`}>
+            <Link className="text-decoration-none" to={`/events/${event.id}`}>
               {event.name}
             </Link>
           </h5>

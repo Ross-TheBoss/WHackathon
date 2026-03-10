@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TextField, Button, MenuItem, Container, Typography, Box, Paper } from '@mui/material';
+import { getCurrentUser } from '../utils/authStorage';
+import { createEvent } from '../utils/api';
 
 const categories = [
   'Arts & Crafts',
@@ -108,17 +110,32 @@ export default function CreateEventPage() {
     
     if (!validate()) return;
 
-    // TODO: Replace with actual API call
-    console.log('Creating event:', formData);
-    
-    // For now, just navigate back to events page
-    // In production, you would:
-    // 1. Send POST request to /events/ endpoint
-    // 2. Handle response/errors
-    // 3. Navigate on success
-    
-    alert('Event creation will be implemented when backend is connected');
-    navigate('/events');
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      navigate('/login', { state: { message: 'Please log in to create an event.' } });
+      return;
+    }
+
+    try {
+      await createEvent({
+        title: formData.title,
+        description: formData.description || null,
+        location: formData.location,
+        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+        event_type: formData.eventType,
+        category: formData.category,
+        capacity: parseInt(formData.capacity, 10),
+        start_time: new Date(formData.startTime).toISOString(),
+        end_time: new Date(formData.endTime).toISOString(),
+        organiser_id: currentUser.id,
+        groups: [],
+      });
+      alert('Event created successfully!');
+      navigate('/events');
+    } catch (err) {
+      alert(err.message || 'Could not create event. Please try again.');
+    }
   };
 
   const handleCancel = () => {

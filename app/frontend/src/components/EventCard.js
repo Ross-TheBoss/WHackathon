@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import slugify from 'react-slugify'; 
 import { Rating } from '@mui/material';
 import { formatEventTime } from '../utils/dateUtils';
 
@@ -127,8 +126,8 @@ export default function EventCard({ event }) {
         </button>
       </div>
       <div className="card-body">
-        <Link to={`/events/${slugify(event.name)}`} className="stretched-link" aria-label={`Open ${event.name}`} />
-        <h3 className="event-name"><Link to={`/events/${slugify(event.name)}`}>{event.name}</Link></h3>
+        <Link to={`/events/${event.id}`} className="stretched-link" aria-label={`Open ${event.name}`} />
+        <h3 className="event-name"><Link to={`/events/${event.id}`}>{event.name}</Link></h3>
         <div className="event-meta text-muted small d-flex align-items-center gap-2 flex-wrap">
           <span className="badge bg-secondary event-category-badge">{event.category}</span>
           <span>By {event.author}</span>

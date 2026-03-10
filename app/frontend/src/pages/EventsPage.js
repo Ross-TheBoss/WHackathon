@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import eventsData from '../data/mockEvents';
+import mockEventsData from '../data/mockEvents';
 import EventCard from '../components/EventCard';
 import AddEventCard from '../components/AddEventCard';
 import SearchFilter from '../components/SearchFilter';
+import { fetchEvents } from '../utils/api';
 
 export default function EventsPage() {
   const [search, setSearch] = useState('');
@@ -14,6 +15,8 @@ export default function EventsPage() {
   const [userLocation, setUserLocation] = useState(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState([]);
+  const [eventsData, setEventsData] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
 
   const loadFavoriteIds = () => {
     if (typeof window === 'undefined') return [];
@@ -25,6 +28,15 @@ export default function EventsPage() {
       return [];
     }
   };
+
+  // Load events from API, fall back to mock data
+  useEffect(() => {
+    setLoadingEvents(true);
+    fetchEvents()
+      .then((data) => setEventsData(Array.isArray(data) ? data : []))
+      .catch(() => setEventsData(mockEventsData))
+      .finally(() => setLoadingEvents(false));
+  }, []);
 
   useEffect(() => {
     if (!navigator || !navigator.geolocation) return;
@@ -101,7 +113,7 @@ export default function EventsPage() {
     }
 
     return list;
-  }, [search, category, sort, participants, userLocation, showFavoritesOnly, favoriteIds]);
+  }, [search, category, sort, participants, userLocation, showFavoritesOnly, favoriteIds, eventsData]);
 
   return (
     <section className="events-page py-6">
@@ -183,6 +195,7 @@ export default function EventsPage() {
               </div>
             </div>
 
+            {loadingEvents && <p className="text-muted mb-3">Loading events...</p>}
             <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
               {filtered.map(ev => (
                 <div className="col" key={ev.id}>

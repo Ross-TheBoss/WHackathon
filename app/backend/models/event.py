@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, DateTime, Text, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, Enum, DateTime, Text, ForeignKey, Float, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -11,10 +11,13 @@ class EventType(str, enum.Enum):
 class EventCategory(str, enum.Enum):
     music = "Music"
     sports = "Sports"
-    arts_craft = "Arts & Craft"
+    arts_crafts = "Arts & Crafts"
     technology = "Technology"
     food = "Food"
     gaming = "Gaming"
+    health = "Health"
+    dance = "Dance"
+    talk = "Talk"
 
 class Event(Base):
     __tablename__ = "events"
@@ -30,6 +33,7 @@ class Event(Base):
     capacity = Column(Integer, nullable=False)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
+    groups = Column(JSON, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
 
