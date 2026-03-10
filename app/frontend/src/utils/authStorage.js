@@ -1,12 +1,8 @@
-const API_BASE_URL = (
-  process.env.REACT_APP_API_URL ||
-  ''
-).replace(/\/$/, '');
-
 const AUTH_TOKEN_KEY = 'sista_auth_token_v1';
 const CURRENT_USER_KEY = 'sista_current_user_v1';
 const RES_PREFIX = 'sista_reservations_v1_';
 const HOST_PREFIX = 'sista_hosted_v1_';
+const USERS_KEY = 'sista_users_v1';
 
 const safeParse = (value, fallback) => {
   try {
@@ -38,37 +34,15 @@ const clearSession = () => {
   window.dispatchEvent(new Event('auth-changed'));
 };
 
-const getErrorMessage = (payload, fallback) => {
-  if (!payload) return fallback;
-  if (typeof payload.detail === 'string') return payload.detail;
-  if (Array.isArray(payload.detail)) {
-    return payload.detail.map((item) => item?.msg).filter(Boolean).join(', ') || fallback;
-  }
-  return payload.message || fallback;
+const getUsers = () => {
+  if (typeof window === 'undefined') return [];
+  return safeParse(window.localStorage.getItem(USERS_KEY), []);
 };
 
-async function api(path, options = {}) {
-  const token = getStoredToken();
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(options.headers || {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
-
-  const text = await response.text();
-  const payload = text ? safeParse(text, null) : null;
-
-  if (!response.ok) {
-    throw new Error(getErrorMessage(payload, `Request failed (${response.status})`));
-  }
-
-  return payload;
-}
+const saveUsers = (users) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
+};
 
 export function getCurrentUser() {
   if (typeof window === 'undefined') return null;
@@ -77,31 +51,33 @@ export function getCurrentUser() {
 
 export async function registerUser(data) {
   if (typeof window === 'undefined') throw new Error('Registration unavailable in this environment');
-  await api('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({
-      ...data,
-      age: Number(data.age),
-    }),
-  });
 
+  const users = getUsers();
+  const exists = users.some((u) => u.email === data.email);
+  if (exists) throw new Error('Email already registered');
+
+  const newUser = {
+    id: crypto.randomUUID?.() || `local-${Date.now()}`,
+    name: data.name,
+    email: data.email,
+    password: data.password,
+    age: Number(data.age),
+    role: data.role || 'user',
+  };
+
+  saveUsers([...users, newUser]);
   return loginUser(data.email, data.password);
 }
 
 export async function loginUser(email, password) {
   if (typeof window === 'undefined') throw new Error('Login unavailable in this environment');
-  const result = await api('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
 
-  const token = result?.access_token;
-  const user = result?.user;
+  const users = getUsers();
+  const user = users.find((u) => u.email === email && u.password === password);
 
-  if (!token || !user) {
-    throw new Error('Login response missing token or user information');
-  }
+  if (!user) throw new Error('Invalid email or password');
 
+  const token = `local-token-${user.id}`;
   setSession({ token, user });
   return user;
 }
@@ -115,15 +91,18 @@ export async function updateCurrentUser(updates) {
   const current = getCurrentUser();
   if (!current) throw new Error('No user logged in');
 
-  const payload = {
+  const users = getUsers();
+  const idx = users.findIndex((u) => u.id === current.id);
+  if (idx === -1) throw new Error('User not found');
+
+  const updated = {
+    ...current,
     ...updates,
-    age: updates.age === '' ? null : Number(updates.age),
+    age: updates.age === '' ? null : Number(updates.age ?? current.age),
   };
 
-  const updated = await api(`/api/v1/users/${current.id}`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  });
+  users[idx] = updated;
+  saveUsers(users);
 
   if (updates.email && updates.email !== current.email) {
     const oldRes = safeParse(window.localStorage.getItem(reservationsKey(current.email)), []);
