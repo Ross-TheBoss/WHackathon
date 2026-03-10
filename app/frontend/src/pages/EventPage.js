@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import slugify from 'react-slugify';
 import eventsData from '../data/mockEvents';
 import ReactMarkdown from 'react-markdown';
 import { formatEventTime } from '../utils/dateUtils';
 import { Rating } from '@mui/material';
 import GroupChat from '../components/GroupChat';
+import { addReservationForCurrentUser, getCurrentUser, getReservationsForUser } from '../utils/authStorage';
 
 export default function EventPage() {
   const RESERVE_MODAL_TOP = 72;
+  const navigate = useNavigate();
   const { id } = useParams();
   const event = eventsData.find(e => slugify(e.name) === id);
 
   const [showModal, setShowModal] = useState(false);
   const [modalLaunchOffset, setModalLaunchOffset] = useState({ x: 0, y: 0 });
-  const [username, setUsername] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
   const [groupChat, setGroupChat] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
@@ -24,20 +26,45 @@ export default function EventPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [registeredUsername, setRegisteredUsername] = useState('');
 
+  useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
+    if (user && event) {
+      const res = getReservationsForUser(user.email);
+      if (res.includes(String(event.id))) {
+        setIsRegistered(true);
+        setRegisteredUsername(user.name);
+      }
+    }
+    const handler = () => setCurrentUser(getCurrentUser());
+    window.addEventListener('auth-changed', handler);
+    return () => window.removeEventListener('auth-changed', handler);
+  }, [event]);
+
   const handleConfirm = () => {
-    if (!username || !acceptedTerms) {
-      alert("Please enter a username and accept the terms.");
+    if (!currentUser) {
+      navigate('/login', { state: { message: 'Please log in to reserve a spot.' } });
+      return;
+    }
+    if (!acceptedTerms) {
+      alert("Please accept the terms.");
       return;
     }
 
-    alert(`Reservation confirmed for ${username}!`);
-    setRegisteredUsername(username);
+    try {
+      addReservationForCurrentUser(event.id);
+    } catch (err) {
+      alert(err.message || 'Could not save reservation');
+      return;
+    }
+
+    alert(`Reservation confirmed for ${currentUser.name}!`);
+    setRegisteredUsername(currentUser.name);
     setIsRegistered(true);
     if (groupChat) {
       setIsChatOpen(true);
     }
     setShowModal(false);
-    setUsername('');
     setGroupChat(false);
     setAcceptedTerms(false);
   };
@@ -64,6 +91,11 @@ export default function EventPage() {
   };
 
   const handleOpenReserveModal = (e) => {
+    if (!currentUser) {
+      navigate('/login', { state: { message: 'Please log in to reserve a spot.' } });
+      return;
+    }
+
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = rect.left + (rect.width / 2);
     const clickY = rect.top + (rect.height / 2);
@@ -260,12 +292,21 @@ export default function EventPage() {
                 </div>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <label className="form-label">Username</label>
+                    <label className="form-label">Attendee</label>
                     <input
                       type="text"
                       className="form-control"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      value={currentUser?.name || ''}
+                      disabled
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      value={currentUser?.email || ''}
+                      disabled
                     />
                   </div>
                   <div className="form-check mb-3">

@@ -1,21 +1,31 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../utils/authStorage';
 
 export default function RegisterPage() {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [age, setAge] = useState('');
   const [role, setRole] = useState('participant');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError('');
     if (!name || !email || !password || !age || !role) {
       alert('Please fill in all fields');
       return;
     }
-    alert(`Registration successful for ${name}!`);
-    // Add actual registration logic here
+
+    try {
+      registerUser({ name, email, password, age, role });
+      alert(`Registration successful for ${name}!`);
+      navigate('/profile');
+    } catch (err) {
+      setError(err.message || 'Could not register right now.');
+    }
   };
 
   return (
@@ -26,6 +36,7 @@ export default function RegisterPage() {
             <h1 className="display-6 fw-bold mb-4 text-center">Register</h1>
             
             <form onSubmit={handleSubmit}>
+              {error && <div className="alert alert-danger">{error}</div>}
               <div className="mb-3">
                 <label htmlFor="name" className="form-label">Name</label>
                 <input

@@ -1,18 +1,27 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { loginUser } from '../utils/authStorage';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError('');
     if (!username || !password) {
       alert('Please enter both username and password');
       return;
     }
-    alert(`Login attempt for ${username}`);
-    // Add actual login logic here
+    try {
+      loginUser(username, password);
+      navigate('/profile');
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    }
   };
 
   return (
@@ -21,15 +30,21 @@ export default function LoginPage() {
         <div className="col-md-6">
           <div className="card p-4">
             <h1 className="display-6 fw-bold mb-4 text-center">Login</h1>
+            {location.state?.message && (
+              <div className="alert alert-info" role="alert">
+                {location.state.message}
+              </div>
+            )}
             
             <form onSubmit={handleSubmit}>
+              {error && <div className="alert alert-danger">{error}</div>}
               <div className="mb-3">
-                <label htmlFor="username" className="form-label">Username</label>
+                <label htmlFor="username" className="form-label">Email</label>
                 <input
                   type="text"
                   className="form-control"
                   id="username"
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
