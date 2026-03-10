@@ -1,5 +1,7 @@
-const USERS_KEY = 'sista_users_v1';
-const CURRENT_USER_KEY = 'sista_current_user_email_v1';
+const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
+
+const AUTH_TOKEN_KEY = 'sista_auth_token_v1';
+const CURRENT_USER_KEY = 'sista_current_user_v1';
 const RES_PREFIX = 'sista_reservations_v1_';
 const HOST_PREFIX = 'sista_hosted_v1_';
 
@@ -11,83 +13,125 @@ const safeParse = (value, fallback) => {
   }
 };
 
-const loadUsers = () => {
-  if (typeof window === 'undefined') return [];
-  return safeParse(window.localStorage.getItem(USERS_KEY), []);
-};
-
-const saveUsers = (users) => {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
-};
-
 const reservationsKey = (email) => `${RES_PREFIX}${email}`;
 const hostedKey = (email) => `${HOST_PREFIX}${email}`;
 
+const getStoredToken = () => {
+  if (typeof window === 'undefined') return null;
+  return window.localStorage.getItem(AUTH_TOKEN_KEY);
+};
+
+const setSession = ({ token, user }) => {
+  if (typeof window === 'undefined') return;
+  if (token) window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+  if (user) window.localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  window.dispatchEvent(new Event('auth-changed'));
+};
+
+const clearSession = () => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(AUTH_TOKEN_KEY);
+  window.localStorage.removeItem(CURRENT_USER_KEY);
+  window.dispatchEvent(new Event('auth-changed'));
+};
+
+const getErrorMessage = (payload, fallback) => {
+  if (!payload) return fallback;
+  if (typeof payload.detail === 'string') return payload.detail;
+  if (Array.isArray(payload.detail)) {
+    return payload.detail.map((item) => item?.msg).filter(Boolean).join(', ') || fallback;
+  }
+  return payload.message || fallback;
+};
+
+async function api(path, options = {}) {
+  const token = getStoredToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  const text = await response.text();
+  const payload = text ? safeParse(text, null) : null;
+
+  if (!response.ok) {
+    throw new Error(getErrorMessage(payload, `Request failed (${response.status})`));
+  }
+
+  return payload;
+}
+
 export function getCurrentUser() {
   if (typeof window === 'undefined') return null;
-  const email = window.localStorage.getItem(CURRENT_USER_KEY);
-  if (!email) return null;
-  return loadUsers().find((u) => u.email === email) || null;
+  return safeParse(window.localStorage.getItem(CURRENT_USER_KEY), null);
 }
 
-export function registerUser(data) {
+export async function registerUser(data) {
   if (typeof window === 'undefined') throw new Error('Registration unavailable in this environment');
-  const users = loadUsers();
-  const exists = users.find((u) => u.email === data.email);
-  if (exists) throw new Error('An account with this email already exists.');
-  const user = {
-    ...data,
-    createdAt: new Date().toISOString(),
-  };
-  users.push(user);
-  saveUsers(users);
-  window.localStorage.setItem(CURRENT_USER_KEY, user.email);
-  window.dispatchEvent(new Event('auth-changed'));
-  return user;
+  await api('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...data,
+      age: Number(data.age),
+    }),
+  });
+
+  return loginUser(data.email, data.password);
 }
 
-export function loginUser(email, password) {
+export async function loginUser(email, password) {
   if (typeof window === 'undefined') throw new Error('Login unavailable in this environment');
-  const users = loadUsers();
-  const user = users.find((u) => u.email === email && u.password === password);
-  if (!user) throw new Error('Invalid email or password');
-  window.localStorage.setItem(CURRENT_USER_KEY, user.email);
-  window.dispatchEvent(new Event('auth-changed'));
+  const result = await api('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+
+  const token = result?.access_token;
+  const user = result?.user;
+
+  if (!token || !user) {
+    throw new Error('Login response missing token or user information');
+  }
+
+  setSession({ token, user });
   return user;
 }
 
 export function logoutUser() {
-  if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(CURRENT_USER_KEY);
-  window.dispatchEvent(new Event('auth-changed'));
+  clearSession();
 }
 
-export function updateCurrentUser(updates) {
+export async function updateCurrentUser(updates) {
   if (typeof window === 'undefined') throw new Error('Update unavailable in this environment');
   const current = getCurrentUser();
   if (!current) throw new Error('No user logged in');
-  const users = loadUsers();
-  const idx = users.findIndex((u) => u.email === current.email);
-  if (idx === -1) throw new Error('User not found');
 
-  const oldEmail = current.email;
-  const updated = { ...current, ...updates };
-  users[idx] = updated;
-  saveUsers(users);
+  const payload = {
+    ...updates,
+    age: updates.age === '' ? null : Number(updates.age),
+  };
 
-  // migrate reservation + hosted keys if email changed
-  if (updates.email && updates.email !== oldEmail) {
-    const oldRes = safeParse(window.localStorage.getItem(reservationsKey(oldEmail)), []);
-    const oldHosted = safeParse(window.localStorage.getItem(hostedKey(oldEmail)), []);
-    window.localStorage.removeItem(reservationsKey(oldEmail));
-    window.localStorage.removeItem(hostedKey(oldEmail));
+  const updated = await api(`/api/v1/users/${current.id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+
+  if (updates.email && updates.email !== current.email) {
+    const oldRes = safeParse(window.localStorage.getItem(reservationsKey(current.email)), []);
+    const oldHosted = safeParse(window.localStorage.getItem(hostedKey(current.email)), []);
+    window.localStorage.removeItem(reservationsKey(current.email));
+    window.localStorage.removeItem(hostedKey(current.email));
     window.localStorage.setItem(reservationsKey(updated.email), JSON.stringify(oldRes));
     window.localStorage.setItem(hostedKey(updated.email), JSON.stringify(oldHosted));
-    window.localStorage.setItem(CURRENT_USER_KEY, updated.email);
   }
 
-  window.dispatchEvent(new Event('auth-changed'));
+  setSession({ token: getStoredToken(), user: updated });
   return updated;
 }
 
@@ -124,7 +168,5 @@ export function addHostedEventForCurrentUser(eventId) {
 }
 
 export function clearAllAuthData() {
-  if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(CURRENT_USER_KEY);
-  window.localStorage.removeItem(USERS_KEY);
+  clearSession();
 }
