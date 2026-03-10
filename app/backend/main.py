@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from models import User, Event, Reviews, Registration, ChatMember, Message
-from routers import login_auth, crud
+from routers import login_auth, crud, chat
 
 app = FastAPI(
     title="Woman First API",
