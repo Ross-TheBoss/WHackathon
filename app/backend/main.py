@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from models import User, Event, Reviews, Registration
+from models import User, Event, Reviews, Registration, ChatMember, Message
 from routers import login_auth, crud
 
 app = FastAPI(
@@ -21,6 +21,8 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(login_auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(crud.router, prefix="/api/v1", tags=["CRUD Operations"])
+
+app.include_router(chat.router, prefix="/api/v1")
 
 @app.get("/")
 def root():
