@@ -11,8 +11,11 @@ export default function HomePage() {
 
         {/* About Section */}
         <section className="about-section text-center mb-5">
-          <h2 className="display-6 fw-bold">Where Women Meet, Connect, and Thrive</h2>
-          <br></br>
+          <h2 className="display-6 fw-bold d-inline-flex align-items-center justify-content-center gap-3 mb-4">
+            <span aria-hidden="true">&#9829;</span>
+            <span>Safe Socialising and Networking for Her</span>
+            <span aria-hidden="true">&#9829;</span>
+          </h2>
           <p>
             Welcome to Sista! Your go-to platform for discovering and booking amazing events.
             Whether you're looking for workshops, classes, or community gatherings, we've got you covered.
