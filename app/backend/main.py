@@ -18,7 +18,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+print("Creating database tables...")
+
 Base.metadata.create_all(bind=engine)
+
+print("Database tables created successfully.")
 
 app.include_router(login_auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(crud.router, prefix="/api/v1", tags=["CRUD Operations"])
