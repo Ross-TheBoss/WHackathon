@@ -1,4 +1,7 @@
-const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
+const API_BASE_URL = (
+  process.env.BACKEND_URL ||
+  ''
+).replace(/\/$/, '');
 
 const AUTH_TOKEN_KEY = 'sista_auth_token_v1';
 const CURRENT_USER_KEY = 'sista_current_user_v1';
