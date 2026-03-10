@@ -11,7 +11,7 @@ export default function RegisterPage() {
   const [role, setRole] = useState('participant');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!name || !email || !password || !age || !role) {
@@ -20,7 +20,7 @@ export default function RegisterPage() {
     }
 
     try {
-      registerUser({ name, email, password, age, role });
+      await registerUser({ name, email, password, age, role });
       alert(`Registration successful for ${name}!`);
       navigate('/profile');
     } catch (err) {

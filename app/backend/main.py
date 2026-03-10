@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from database import engine, Base
 from models import User, Event, Reviews, Registration
 from routers import login_auth, crud
@@ -10,9 +11,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
+cors_origins = os.getenv("CORS_ORIGINS", "")
+origins = [origin.strip() for origin in cors_origins.split(",") if origin.strip()]
+if not origins:
+    origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

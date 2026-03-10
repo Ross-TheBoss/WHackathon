@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!username || !password) {
@@ -17,7 +17,7 @@ export default function LoginPage() {
       return;
     }
     try {
-      loginUser(username, password);
+      await loginUser(username, password);
       navigate('/profile');
     } catch (err) {
       setError(err.message || 'Login failed');

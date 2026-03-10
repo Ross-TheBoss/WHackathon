@@ -78,12 +78,12 @@ export default function ProfilePage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleUpdateProfile = (e) => {
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setMessage('');
     setError('');
     try {
-      const updated = updateCurrentUser(form);
+      const updated = await updateCurrentUser(form);
       setCurrentUser(updated);
       setMessage('Profile updated successfully.');
     } catch (err) {
